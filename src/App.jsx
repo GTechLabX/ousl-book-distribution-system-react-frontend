@@ -1,16 +1,37 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Routes, Route, BrowserRouter } from 'react-router-dom';
+import Layout from './Components/Layout/Layout';
+import Dashboard from './Pages/Dashboard';
+import Distribution from './Pages/Distribution';
+import Inventory from './Pages/Inventory';
+import Registration from './Pages/Registration';
+
 
 function App() {
-  const [count, setCount] = useState(0)
+
 
   return (
-    <>
-      <div className='bg-amber-700'>  hello word</div>
-    </>
-  )
+    <BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Layout />} >
+
+      {/* <Route index element={<h1>Home Page</h1>} /> */}
+     
+      <Route index path="dashboard" element={<Dashboard />} />
+
+      <Route path="distribution" element={<Distribution />} />
+
+      <Route path="inventory" element={<Inventory />} />
+
+      <Route path="registration" element={<Registration />} />
+
+
+      </Route>
+    </Routes>
+
+    </BrowserRouter>
+      
+    
+  );
 }
 
-export default App
+export default App;
