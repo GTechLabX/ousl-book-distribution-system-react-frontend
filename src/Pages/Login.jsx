@@ -12,7 +12,7 @@ function Login() {
     <div
       className=" flex items-center justify-center min-h-screen "
       style={{
-        backgroundImage: `url('/src/assets/blackground.jpeg')`,
+        backgroundImage: `url('/src/assets/background1.jpeg')`,
         backgroundSize: "cover ",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
