@@ -1,18 +1,25 @@
 import React from "react";
-import { FaUser, FaLock } from "react-icons/fa";
+import { FaUser } from "react-icons/fa";
+import { BsEye, BsEyeSlash } from "react-icons/bs";
 
 function Login() {
+ const [Show ,Setshow]=React.useState(true)
+ 
+ const TogglePassword=()=>{
+  Setshow(!Show)
+ }
   return (
     <div
       className=" flex items-center justify-center min-h-screen "
       style={{
-        backgroundImage: `url('/src/assets/blackgroun.png')`,
-        backgroundSize: "cover",
+        backgroundImage: `url('/src/assets/background1.jpeg')`,
+        backgroundSize: "cover ",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
+       
       }}
     >
-      <div className=" wrapper w-[420px] h-[450px] bg-yellow-400 rounded-2xl shadow-lg p-6">
+      <div className=" wrapper w-[420px] h-[450px] bg-white rounded-2xl shadow-lg p-6">
         <form className="">
           <div className="flex justify-center ">
             <div className="rounded-full flex items-center justify-center shadow-2xl bg-white w-20 h-20">
@@ -35,27 +42,36 @@ function Login() {
               type="text"
               placeholder="Username"
               required
-              className="wdt  margin p-2  w-3/4 border border-gray-300  w1/2 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-600"
+              className="  margin p-2  w-3/4 border border-gray-300 pr-18 w1/2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0C4087]"
             />
             <FaUser className="absolute right-[90px] text-gray-600 text-lg" />
           </div>
 
           <div className="relative flex items-center justify-center mb-3">
             <input
-              type="password"
+              type={Show ? "password" : Text}
               placeholder="Password"
               required
-              className=" wdt  margin p-2  w-3/4 border border-gray-300  w1/2 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-600"
+              className="  margin p-2  w-3/4 border border-gray-300 pr-18 w1/2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0C4087]"
             />
-            <FaLock className="absolute right-[90px] text-gray-600 text-lg" />
+            {Show ? (
+              <BsEye
+                className="absolute right-[90px] text-gray-600 text-lg "
+                onClick={TogglePassword}
+              />
+            ) : (
+              <BsEyeSlash
+                className="absolute right-[90px] text-gray-600 text-lg "
+                onClick={TogglePassword}
+              />
+            )}
           </div>
-
           <div className="flex items-center justify-between text-sm">
             <label className="flex items-center">
               <input type="checkbox" className="mr-1" />
               Remember me
             </label>
-            <a href="#" className="text-yellow-700 hover:underline">
+            <a href="#" className=" hover:underline">
               Forgot password?
             </a>
           </div>
@@ -63,7 +79,7 @@ function Login() {
 
           <button
             type="submit"
-            className=" wdt block mx-auto bg-yellow-700 text-white py-2 px-8 rounded-lg hover:bg-yellow-800 transition duration-300"
+            className="  block mx-auto bg-[#070055] text-white py-2 px-8 rounded-lg hover:bg-[#0C4087] transition duration-300  w-3/4"
           >
             Login
           </button>
