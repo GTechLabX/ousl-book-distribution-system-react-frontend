@@ -16,7 +16,6 @@ function Login() {
         backgroundSize: "cover ",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
-       
       }}
     >
       <div className=" wrapper w-[420px] h-[450px] bg-white rounded-2xl shadow-lg p-6">
@@ -79,7 +78,7 @@ function Login() {
 
           <button
             type="submit"
-            className="  block mx-auto bg-[#070055] text-white py-2 px-8 rounded-lg hover:bg-[#0C4087] transition duration-300  w-3/4"
+            className="  block mx-auto bg-[#070055] text-white py-2 px-8 rounded-lg hover:bg-[#0C4087] transition duration-300 shadow-xl/20 w-3/4"
           >
             Login
           </button>
