@@ -5,33 +5,37 @@ import Distribution from './Pages/Distribution';
 import Inventory from './Pages/Inventory';
 import Registration from './Pages/Registration';
 import Login from './pages/Login';
+import StudentRegistation from './Pages/StudentRegistation';
 
 
 function App() {
 
 
   return (
-    // <BrowserRouter>
-    //   <Routes>
-    //     <Route path="/" element={<Layout />} >
+    <BrowserRouter>
+      <Routes>
+       <Route path="/" element={<Layout />} >
 
-    //       {/* <Route index element={<h1>Home Page</h1>} /> */}
+          {/* <Route index element={<h1>Home Page</h1>} /> */}
          
-    //       <Route index path="dashboard" element={<Dashboard />} />
+         //<Route index path="dashboard" element={<Dashboard />} />
 
-    //       <Route path="distribution" element={<Distribution />} />
+          //<Route path="distribution" element={<Distribution />} />
 
-    //       <Route path="inventory" element={<Inventory />} />
+          //<Route path="inventory" element={<Inventory />} />
 
-    //       <Route path="registration" element={<Registration />} />
+         //<Route path="registration" element={<Registration />} />
+            
+          <Route path="StudentRegistation" element={<StudentRegistation />} />
 
 
-    //     </Route>
-    //   </Routes>
+
+        </Route>
+       </Routes>
       
-    // </BrowserRouter>
+     </BrowserRouter>
 
-    <Login/>
+   
   );
 }
 
