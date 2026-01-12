@@ -6,7 +6,7 @@ import Inventory from './Pages/Inventory';
 import Registration from './Pages/Registration';
 import StudentRegistation from './Pages/StudentRegistation';
 import CourseManagement from './Pages/CourseManagement.jsx';
-//import Registration from './Pages/Login';
+
 
 
 
