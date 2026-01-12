@@ -4,8 +4,9 @@ import Dashboard from './Pages/Dashboard';
 import Distribution from './Pages/Distribution';
 import Inventory from './Pages/Inventory';
 import Registration from './Pages/Registration';
+import UsersManagement from './Pages/UsersManagement';
+import CourseManagement from './Pages/CourseManagement';
 
-import StudentRegistation from './Pages/StudentRegistation';
 
 
 
@@ -26,8 +27,12 @@ function App() {
           <Route path="inventory" element={<Inventory />} />
 
          <Route path="registration" element={<Registration />} />
+
+         <Route path="CourseManagement" element={<CourseManagement />} />
             
-          <Route path="StudentRegistation" element={<StudentRegistation />} />
+          <Route path="UsersManagement" element={<UsersManagement />} />
+          
+
 
 
 
