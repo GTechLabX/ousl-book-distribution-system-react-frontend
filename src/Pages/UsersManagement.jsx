@@ -1,0 +1,12 @@
+import React from 'react'
+
+function UsersManagement() {
+  return (
+    <div>
+      <h1>UsersManagement</h1>
+      
+    </div>
+  )
+}
+
+export default UsersManagement
