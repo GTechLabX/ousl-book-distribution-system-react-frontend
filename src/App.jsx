@@ -4,12 +4,8 @@ import Dashboard from './Pages/Dashboard';
 import Distribution from './Pages/Distribution';
 import Inventory from './Pages/Inventory';
 import Registration from './Pages/Registration';
-//import Registration from './Pages/Login';
-import Coursemanagement from './Pages/CourseManagement ';
-
-
-
 import StudentRegistation from './Pages/StudentRegistation';
+//import Registration from './Pages/Login';
 
 
 
@@ -32,7 +28,8 @@ function App() {
          <Route path="registration" element={<Registration />} />
             
           <Route path="StudentRegistation" element={<StudentRegistation />} />
-          <Route path="Course management" element={<Course management />} />
+          
+
 
 
 
