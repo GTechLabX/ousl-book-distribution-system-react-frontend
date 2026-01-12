@@ -4,7 +4,7 @@ import Dashboard from './Pages/Dashboard';
 import Distribution from './Pages/Distribution';
 import Inventory from './Pages/Inventory';
 import Registration from './Pages/Registration';
-import Registration from './Pages/Login';
+//import Registration from './Pages/Login';
 
 
 import StudentRegistation from './Pages/StudentRegistation';
