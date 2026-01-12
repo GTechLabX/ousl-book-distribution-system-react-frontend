@@ -5,6 +5,7 @@ import Distribution from './Pages/Distribution';
 import Inventory from './Pages/Inventory';
 import Registration from './Pages/Registration';
 import StudentRegistation from './Pages/StudentRegistation';
+import CourseManagement from './Pages/CourseManagement.jsx';
 //import Registration from './Pages/Login';
 
 
@@ -26,6 +27,8 @@ function App() {
           <Route path="inventory" element={<Inventory />} />
 
          <Route path="registration" element={<Registration />} />
+
+         <Route path="CourseManagement" element={<CourseManagement />} />
             
           <Route path="StudentRegistation" element={<StudentRegistation />} />
           
