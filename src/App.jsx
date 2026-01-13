@@ -23,14 +23,14 @@ function App() {
          <Route index path="dashboard" element={<Dashboard />} />
 
           <Route path="distribution" element={<Distribution />} />
-
+          
           <Route path="inventory" element={<Inventory />} />
 
          <Route path="registration" element={<Registration />} />
 
-         <Route path="CourseManagement" element={<CourseManagement />} />
+         <Route path="Course Management" element={<CourseManagement />} />
             
-          <Route path="UsersManagement" element={<UsersManagement />} />
+          <Route path="User Management" element={<UsersManagement />} />
           
 
 

@@ -3,7 +3,7 @@ import React from 'react'
 function UsersManagement() {
   return (
     <div>
-      <h1>UsersManagement</h1>
+      <h1>User Management</h1>
       
     </div>
   )
