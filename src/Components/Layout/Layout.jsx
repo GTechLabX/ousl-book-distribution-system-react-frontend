@@ -21,7 +21,7 @@ function Layout() {
           </div>
         </div>
 
-        <div className='flex-1 hscreen'> 
+        <div className='flex-1 h-screen'> 
             <Outlet />
         </div>
 
