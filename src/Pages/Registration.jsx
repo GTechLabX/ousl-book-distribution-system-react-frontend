@@ -40,7 +40,7 @@ function Registration() {
   return (
     <div className="bg-[#D2D2D2] h-screen overflow-y-auto ">
       {/* Student Registration Form */}
-      <h1 className="text-2xl font-bold text-[#05003C] bg-[#878788] h-15 text-center p-2">
+      <h1 className="text-3xl font-bold text-[#070055] bg-[#878788] h-15 text-center p-2">
         Student Registration
       </h1>
       <div className='  '>
@@ -90,22 +90,25 @@ function Registration() {
 
       {/* Course Search & Registration */}
       <div className=" p-2 bg-[#BEC4C8] max-w-4xl mx-auto mt-16 rounded-xl">
-        <h2 className=" text-center text-xl font-bold  mb-6">Search Course</h2>
+        <h2 className=" text-center text-xl text-[#070055] font-bold  mb-6">Search Course</h2>
         <form className="mb-8" onSubmit={(e) => e.preventDefault()}>
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-center">
+
+          <div className="flex justify-start ml-6 mt-8">
+             <div className="relative w-full max-w-xl">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Course Code / Course Name"
-              className=" bg-[#F4F4F4] flex-grow max-w-xl px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className= "w-full px-4 py-3 pr-24 bg-[#F4F4F4] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
               type="submit"
-              className="px-6 py-3 bg-[#070055] text-white font-medium rounded-lg  focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 px-6 py-2 bg-[#070055] text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               Search
             </button>
+            </div>
           </div>
         </form>
 
@@ -165,7 +168,7 @@ function Registration() {
       {/* Registered Courses */}
 {registeredCourses.length > 0 && (
   <div className="p-6 bg-[#BEC4C8] max-w-4xl mx-auto mt-16 rounded-xl">
-    <h2 className="text-center text-xl font-bold mb-4">
+    <h2 className="text-[#070055] text-center text-xl font-bold mb-4">
       Courses
     </h2>
 
