@@ -4,7 +4,12 @@ function CourseManagement() {
   const [showForm, setShowForm] = useState(false);
   const formRef = useRef(null);
 
-  const [registeredCourses, setRegisteredCourses] = useState([]);
+  
+    // Course search state
+    const [searchQuery, setSearchQuery] = useState('');
+    const [registeredCourses, setRegisteredCourses] = useState([]);
+
+    
 
   const [course, setCourse] = useState({
     code: "",
@@ -46,9 +51,23 @@ function CourseManagement() {
     });
   };
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+    // nothing extra needed, filteredCourses handles display
+  };
+
+  // Filter courses based on searchQuery
+  const filteredCourses = registeredCourses.filter((c) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      c.code.toLowerCase().includes(query) ||
+      c.name.toLowerCase().includes(query)
+    );
+  });
+
   return (
     <div className="bg-[#D2D2D2] h-screen overflow-y-auto">
-      <h1 className="text-2xl font-bold text-[#05003C] bg-[#878788] h-16 text-center p-2">
+      <h1 className="text-3xl font-bold text-[#070055] bg-[#878788] h-16 text-center p-2">
         Course Management
       </h1>
 
@@ -155,6 +174,25 @@ function CourseManagement() {
       <div className="p-6 bg-[#BEC4C8] max-w-4xl mx-auto mt-16 rounded-xl">
         <h2 className="text-center text-xl font-bold  text-[#070055] mb-4">Courses</h2>
 
+        <div className="flex justify-start ml-0 mt-8">
+    <div className="relative w-full max-w-xl">
+    <input
+      type="text"
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      placeholder="Course Code / Course Name"
+      className="w-full px-4 py-3 pr-24 bg-[#F4F4F4] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+    <button
+      onClick={handleSearch}
+      className="absolute right-1 top-1/2 transform -translate-y-1/2 px-6 py-2 bg-[#070055] text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      Search
+    </button>
+  </div>
+</div>
+<br />
+
         <div className="bg-[#E5E7EB] p-3 overflow-x-auto">
           <table className="min-w-full">
             <thead>
@@ -168,14 +206,14 @@ function CourseManagement() {
               </tr>
             </thead>
             <tbody>
-              {registeredCourses.length === 0 ? (
+              {filteredCourses.length === 0 ? (
                 <tr>
                   <td colSpan="4" className="text-center py-4 text-gray-500">
                     No courses added
                   </td>
                 </tr>
               ) : (
-                registeredCourses.map((c) => (
+                filteredCourses.map((c) => (
                   <tr key={c.id} className="border-t text-sm">
                     <td className="px-4 py-2">{c.code}</td>
                     <td className="px-4 py-2">{c.name}</td>
