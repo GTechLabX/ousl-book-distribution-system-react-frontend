@@ -133,10 +133,9 @@ function UsersManagment() {
        >
     <option value="">Select  </option>
     <option value="Manager">Manager</option>
-    <option value="Assistant Manager">Assistant Manager</option>
-    <option value="Officer">Officer</option>
-    <option value="Clerk">Clerk</option>
-    <option value="Lecturer">Lecturer</option>
+    <option value="Staff Member">Staff Member</option>
+    
+    
   </select>
   </div>
 
