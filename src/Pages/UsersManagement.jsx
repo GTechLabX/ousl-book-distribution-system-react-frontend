@@ -88,14 +88,14 @@ function UsersManagment() {
           className="p-4 bg-[#BEC4C8] max-w-4xl mx-auto mt-10 rounded-xl  "
         >
           <h2 className="text-xl font-bold text-[#070055] text-center ml-50 ">
-            Add New Course
+            Add New User
           </h2>
 
           <form
             onSubmit={handleSubmit}
             className="max-w-xl mx-auto mt-10 space-y-4"
           >
-            {/* Course Code */}
+            {/* User Id */}
             <div className="grid grid-cols-3 items-center gap-0">
               <label className="font-medium">User ID</label>
               <input
@@ -108,7 +108,7 @@ function UsersManagment() {
               />
             </div>
 
-            {/* Name */}
+            {/*user Name */}
             <div className="grid grid-cols-3 items-center gap-0">
               <label className="font-medium">User Name</label>
               <input
@@ -141,7 +141,7 @@ function UsersManagment() {
   </div>
 
 
-            {/* Faculty */}
+            {/* center */}
             <div className="grid grid-cols-3 items-center gap-0">
               <label className="font-medium">Center</label>
               <input
@@ -153,7 +153,7 @@ function UsersManagment() {
               />
             </div>
 
-            {/* Credits */}
+            {/* password */}
             <div className="grid grid-cols-3 items-center gap-0">
               <label className="font-medium">Password</label>
               <input
@@ -165,7 +165,7 @@ function UsersManagment() {
               />
             </div>
 
-            {/* Submit */}
+            {/* register */}
             <div className="flex justify-center pt-4">
               <button
                 type="submit"
