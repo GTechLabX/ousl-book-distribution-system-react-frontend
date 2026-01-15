@@ -205,11 +205,11 @@ function UsersManagment() {
           <table className="min-w-full">
             <thead>
               <tr className="bg-[#F3F4F6] text-left text-sm font-medium">
-                <th className="px-4 py-2">code</th>
-                <th className="px-4 py-2">username</th>
-                <th className="px-4 py-2">position</th>
-                <th className="px-4 py-2">center</th>
-                <th className="px-4 py-2">password</th>
+                <th className="px-4 py-2">ID</th>
+                <th className="px-4 py-2">Name</th>
+                <th className="px-4 py-2">Position</th>
+                <th className="px-4 py-2">Center</th>
+                <th className="px-4 py-2">Password</th>
 
               </tr>
             </thead>
