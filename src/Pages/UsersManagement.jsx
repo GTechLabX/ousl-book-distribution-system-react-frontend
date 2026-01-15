@@ -131,7 +131,7 @@ function UsersManagment() {
         onChange={handleChange}
         className="h-8 w-full col-span-0 bg-white px-4 rounded-xl"
        >
-    <option value="">-- Select Position --</option>
+    <option value="">Select  </option>
     <option value="Manager">Manager</option>
     <option value="Assistant Manager">Assistant Manager</option>
     <option value="Officer">Officer</option>
@@ -171,7 +171,7 @@ function UsersManagment() {
                 type="submit"
                 className="px-7 py-2 bg-[#070055] text-white font-medium rounded-lg ml-50"
               >
-                Add
+                Register
               </button>
             </div>
           </form>
