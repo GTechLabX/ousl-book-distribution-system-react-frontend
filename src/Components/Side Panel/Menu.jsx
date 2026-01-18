@@ -1,4 +1,3 @@
-// src/components/Sidebar.jsx
 import { NavLink } from "react-router-dom";
 import {
   FaTachometerAlt,
@@ -7,11 +6,13 @@ import {
   FaUserPlus,
   FaBook,
   FaUsers,
+  FaQrcode, // icon for scan student
 } from "react-icons/fa";
 
 const Sidebar = () => {
   const menuItems = [
     { name: "Dashboard", to: "/dashboard", icon: <FaTachometerAlt /> },
+    { name: "Scan Student", to: "/scan-student", icon: <FaQrcode /> }, // <--- Added
     { name: "Distribution", to: "/distribution", icon: <FaBoxOpen /> },
     { name: "Inventory", to: "/inventory", icon: <FaWarehouse /> },
     { name: "Registration", to: "/registration", icon: <FaUserPlus /> },
@@ -31,9 +32,6 @@ const Sidebar = () => {
 
   return (
     <aside className="flex flex-col w-64 min-h-screen bg-gradient-to-b from-[#0c4187] to-[#070055] shadow-xl">
-
-
-
       {/* Navigation */}
       <nav className="flex flex-col gap-2 px-3 py-6">
         {menuItems.map((item) => (

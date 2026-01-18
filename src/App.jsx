@@ -8,24 +8,27 @@ import UsersManagement from './Pages/UsersManagement';
 import CourseManagement from './Pages/CourseManagement';
 import Login from './Pages/Login'; 
 import PasswordReset from './Pages/passwordReset';
+import ScanStudent from './Pages/ScanStudent';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
 
-        {/* Login route */}
+        {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/password-reset" element={<PasswordReset />} />
 
         {/* All routes inside Layout */}
         <Route path="/" element={<Layout />} >
-          <Route index path="dashboard" element={<Dashboard />} />
+          <Route index element={<Dashboard />} /> {/* default route "/" */}
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="scan-student" element={<ScanStudent />} />
           <Route path="distribution" element={<Distribution />} />
           <Route path="inventory" element={<Inventory />} />
           <Route path="registration" element={<Registration />} />
-          <Route path="Course Management" element={<CourseManagement />} />
-          <Route path="User Management" element={<UsersManagement />} />
+          <Route path="course-management" element={<CourseManagement />} />
+          <Route path="user-management" element={<UsersManagement />} />
         </Route>
 
       </Routes>
