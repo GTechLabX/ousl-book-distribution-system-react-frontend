@@ -1,39 +1,54 @@
 // src/components/Sidebar.jsx
 import { NavLink } from "react-router-dom";
+import {
+  FaTachometerAlt,
+  FaBoxOpen,
+  FaWarehouse,
+  FaUserPlus,
+  FaBook,
+  FaUsers,
+} from "react-icons/fa";
 
 const Sidebar = () => {
+  const menuItems = [
+    { name: "Dashboard", to: "/dashboard", icon: <FaTachometerAlt /> },
+    { name: "Distribution", to: "/distribution", icon: <FaBoxOpen /> },
+    { name: "Inventory", to: "/inventory", icon: <FaWarehouse /> },
+    { name: "Registration", to: "/registration", icon: <FaUserPlus /> },
+    { name: "Course Management", to: "/course-management", icon: <FaBook /> },
+    { name: "User Management", to: "/user-management", icon: <FaUsers /> },
+  ];
+
   const linkClasses = ({ isActive }) =>
-    `block px-4 py-2 rounded-md bg-transparent text-lg font-medium text-white transition-all duration-200 ${
-      isActive
-        ? "bg-blue-600 text-white"
-        : "text-gray-700 hover:bg-blue-100 hover:text-blue-700"
-    }`;
+    `flex items-center gap-4 px-4 py-3 rounded-xl 
+     transition-all duration-300 ease-in-out
+     text-base font-medium
+     ${
+       isActive
+         ? "bg-white text-[#0c4187] shadow-md"
+         : "text-white hover:bg-white/90 hover:text-[#0c4187]"
+     }`;
 
   return (
-    <div className="h-full w-full bg-[#0c4187] border-r shadow-sm flex flex-col p-4 pt-10">
-      
-      <nav className="flex flex-col gap-2 ">
-        <NavLink to="/dashboard" className={linkClasses}>
-          Dashboard
-        </NavLink>
-        <NavLink to="/distribution" className={linkClasses}>
-          Distribution
-        </NavLink>
-        <NavLink to="/inventory" className={linkClasses}>
-          Inventory
-        </NavLink>
-        <NavLink to="/registration" className={linkClasses}>
-          Registration
-        </NavLink>
-        <NavLink to="/Course Management" className={linkClasses}>
-          Course Management
-        </NavLink>
-        <NavLink to="/User Management" className={linkClasses}>
-          User Management
-        </NavLink>
-        
+    <aside className="flex flex-col w-64 min-h-screen bg-gradient-to-b from-[#0c4187] to-[#070055] shadow-xl">
+
+
+
+      {/* Navigation */}
+      <nav className="flex flex-col gap-2 px-3 py-6">
+        {menuItems.map((item) => (
+          <NavLink key={item.to} to={item.to} className={linkClasses}>
+            <span className="text-lg">{item.icon}</span>
+            <span className="truncate">{item.name}</span>
+          </NavLink>
+        ))}
       </nav>
-    </div>
+
+      {/* Footer */}
+      <div className="mt-auto py-4 text-center text-white/70 text-xs border-t border-white/20">
+        © 2026 OUSL Dispatch
+      </div>
+    </aside>
   );
 };
 

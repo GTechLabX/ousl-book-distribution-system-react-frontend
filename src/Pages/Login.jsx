@@ -1,84 +1,129 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../api/auth";
 import { FaUser } from "react-icons/fa";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
 
 function Login() {
- const [Show ,Setshow]=React.useState(true)
- 
- const TogglePassword=()=>{
-  Setshow(!Show)
- }
+  const [show, setShow] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const togglePassword = () => setShow(!show);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      const role = await login(username, password);
+
+      // Redirect based on role
+      if (role === "admin") navigate("/dashboard");
+      else if (role === "staff") navigate("/inventory");
+      else if (role === "student") navigate("/registration");
+      else navigate("/");
+    } catch (err) {
+      console.error(err);
+      setError("Invalid username or password");
+    }
+  };
+
   return (
     <div
-      className=" flex items-center justify-center min-h-screen "
+      className="flex items-center justify-center min-h-screen"
       style={{
         backgroundImage: `url('/src/assets/background1.jpeg')`,
-        backgroundSize: "cover ",
+        backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
       }}
     >
-      <div className=" wrapper w-[420px] h-[450px] bg-white rounded-2xl shadow-lg p-6">
-        <form className="">
-          <div className="flex justify-center ">
+      <div className="w-[420px] bg-white rounded-2xl shadow-lg p-6">
+        <form className="flex flex-col items-center" onSubmit={handleSubmit}>
+          {/* Logo */}
+          <div className="flex justify-center mb-4">
             <div className="rounded-full flex items-center justify-center shadow-2xl bg-white w-20 h-20">
               <img
                 src="/src/assets/logoOusl.png"
                 alt="OUSL Logo"
-                className="logosize object-contain"
+                className="object-contain w-16 h-16"
               />
             </div>
           </div>
-          <h2 className="text-2xl font-bold mb-2 text-center mt-0">
+
+          {/* Titles */}
+          <h2 className="text-2xl font-bold text-center mb-2">
             OUSL DISPATCH SYSTEM
           </h2>
-          <h3 className="text-sm mb-4 text-center">
+          <h3 className="text-sm text-center mb-6">
             Welcome back! Please login to continue
           </h3>
 
-          <div className="relative flex items-center justify-center mb-3">
+          {/* Error */}
+          {error && <p className="text-red-500 mb-2">{error}</p>}
+
+          {/* Username */}
+          <div className="relative w-3/4 mb-4">
             <input
               type="text"
               placeholder="Username"
               required
-              className="  margin p-2  w-3/4 border border-gray-300 pr-18 w1/2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0C4087]"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full p-2 pr-10 border border-gray-300 rounded-md
+                         focus:outline-none focus:ring-2 focus:ring-[#0C4087]"
             />
-            <FaUser className="absolute right-[90px] text-gray-600 text-lg" />
+            <FaUser className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 text-lg" />
           </div>
 
-          <div className="relative flex items-center justify-center mb-3">
+          {/* Password */}
+          <div className="relative w-3/4 mb-4">
             <input
-              type={Show ? "password" : Text}
+              type={show ? "text" : "password"}
               placeholder="Password"
               required
-              className="  margin p-2  w-3/4 border border-gray-300 pr-18 w1/2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0C4087]"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-2 pr-10 border border-gray-300 rounded-md
+                         focus:outline-none focus:ring-2 focus:ring-[#0C4087]"
             />
-            {Show ? (
-              <BsEye
-                className="absolute right-[90px] text-gray-600 text-lg "
-                onClick={TogglePassword}
+            {show ? (
+              <BsEyeSlash
+                className="absolute right-3 top-1/2 -translate-y-1/2
+                           text-gray-600 text-lg cursor-pointer"
+                onClick={togglePassword}
               />
             ) : (
-              <BsEyeSlash
-                className="absolute right-[90px] text-gray-600 text-lg "
-                onClick={TogglePassword}
+              <BsEye
+                className="absolute right-3 top-1/2 -translate-y-1/2
+                           text-gray-600 text-lg cursor-pointer"
+                onClick={togglePassword}
               />
             )}
           </div>
-          <div className="flex items-center justify-between text-sm">
+
+          {/* Remember & Forgot */}
+          <div className="flex justify-between w-3/4 text-sm mb-4">
             <label className="flex items-center">
               <input type="checkbox" className="mr-1" />
               Remember me
             </label>
-            <a href="#" className=" hover:underline">
+            <a href="/password-reset" className="hover:underline">
               Forgot password?
             </a>
           </div>
-          <br />
 
+          {/* Login Button */}
           <button
             type="submit"
-            className="  block mx-auto bg-[#070055] text-white py-2 px-8 rounded-lg hover:bg-[#0C4087] transition duration-300 shadow-xl/20 w-3/4"
+            className="bg-[#070055] text-white py-2 px-8 rounded-lg
+                       hover:bg-[#0C4087] transition duration-300
+                       shadow-xl w-3/4"
           >
             Login
           </button>
@@ -88,5 +133,4 @@ function Login() {
   );
 }
 
-export default Login
-
+export default Login;

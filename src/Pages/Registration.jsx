@@ -1,214 +1,212 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from "react";
+import api from "../api/axios";
+import { useAuth } from "../api/auth";
 
 function Registration() {
-  // Student input state (optional)
-  const [studentId, setStudentId] = useState('');
-  const [studentName, setStudentName] = useState('');
-  const [studentEmail, setStudentEmail] = useState('');
-  const [center, setCenter] = useState('');
+  const { user } = useAuth();
 
-  // Course search state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [registeredCourses, setRegisteredCourses] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [centers, setCenters] = useState({});
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Courses data
-  const [courses] = useState([
-    { id: 1, code: 'AGM3263', name: 'Communication Skills', program: 'BSE', credits: 2 },
-    { id: 2, code: 'EEI3372', name: 'Programing python', program: 'BSE', credits: 3 },
-    { id: 3, code: 'EEI4267', name: 'Requirement Engineering', program: 'BSE', credits: 2 },
-    { id: 4, code: 'EEI4346', name: 'Web Technology', program: 'BSE', credits: 3 },
-    { id: 5, code: 'EEI4362', name: 'Object Oriented Design', program: 'BSE', credits: 3 },
-    { id: 6, code: 'MHZ4256', name: 'Mathamatics for Computing', program: 'MP', credits: 2 },
-  ]);
+  // slider state
+  const [activeView, setActiveView] = useState("view"); // view | register
 
-  // Handle course registration
-  const handleRegister = (courseId) => {
-  const course = courses.find(c => c.id === courseId);
-  if (course && !registeredCourses.find(rc => rc.id === courseId)) {
-    setRegisteredCourses([...registeredCourses, course]);
-  }
-};
+  const hasFetched = useRef(false);
 
+  useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
 
-  // Filter courses based on search
-  const filteredCourses = courses.filter(course => {
+    const fetchStudentsAndCenters = async () => {
+      try {
+        const resStudents = await api.get("/student/");
+        const dataStudents = resStudents.data;
+
+        let studentArray = [];
+        if (Array.isArray(dataStudents?.message)) {
+          studentArray = dataStudents.message;
+        } else if (Array.isArray(dataStudents)) {
+          studentArray = dataStudents;
+        } else if (Array.isArray(dataStudents?.results)) {
+          studentArray = dataStudents.results;
+        }
+
+        const resCenters = await api.get("/centers/");
+        const centerMap = {};
+        if (Array.isArray(resCenters.data?.data)) {
+          resCenters.data.data.forEach((c) => {
+            centerMap[c.id] = c.center_name;
+          });
+        }
+
+        setStudents(studentArray);
+        setCenters(centerMap);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to fetch data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudentsAndCenters();
+  }, []);
+
+  const filteredStudents = students.filter((s) => {
     if (!searchQuery.trim()) return true;
-    const query = searchQuery.toLowerCase();
-    return course.code.toLowerCase().includes(query) || course.name.toLowerCase().includes(query);
+    const q = searchQuery.toLowerCase();
+    const centerName = centers[s.center] || "";
+
+    return (
+      String(s.s_no).toLowerCase().includes(q) ||
+      String(s.student_name).toLowerCase().includes(q) ||
+      String(s.email).toLowerCase().includes(q) ||
+      String(s.reg_no).toLowerCase().includes(q) ||
+      String(centerName).toLowerCase().includes(q)
+    );
   });
 
+  if (loading) return <div className="text-center mt-10">Loading...</div>;
+  if (error) return <div className="text-center mt-10 text-red-600">{error}</div>;
+
   return (
-    <div className="bg-[#D2D2D2] h-screen overflow-y-auto ">
-      {/* Student Registration Form */}
-      <h1 className="text-3xl font-bold text-[#070055] bg-[#878788] h-15 text-center p-2">
-        Student Registration
+    <div className="p-6 bg-[#D2D2D2] min-h-screen">
+      <h1 className="text-3xl font-bold text-center mb-8">
+        Student Management
       </h1>
-      <div className='  '>
-      <form className="max-w-xl mx-auto mt-10 ml-30 space-y-3">
 
-          <div className="grid grid-cols-3 items-center gap-6">
-          <label className="col-span-1 text-left font-medium">
-          Student ID
-          </label>
-           
-          <input
-          type="text"
-          className="field-sizing-fixed h-8 w-150 col-span-2 bg-white px-4 py-2 rounded-xl  "/>
-          </div>
-
-           <div className="grid grid-cols-3 gap-6 items-center">
-          <label className="col-span-1 text-left font-medium">
-            Student Name
-           </label>
-           <input
-          type="text"
-          className=" field-sizing-fixed h-8 w-150 col-span-2 bg-white px-4 py-2 rounded-xl  "/>
-         </div>
-
-         <div className="grid grid-cols-3 gap-6 items-center">
-          <label className="col-span-1 text-left font-medium">
-          Student Email
-          </label>
-          <input
-          type="email"
-          className=" field-sizing-fixed h-8 w-150 col-span-2 bg-white px-4 py-2 rounded-xl  "/>
-         </div>
-
-         <div className="grid grid-cols-3 gap-6 items-center">
-          <label className="col-span-1 text-left font-medium">
-           Center
-         </label>
-          <input
-          type="text"
-          className="field-sizing-fixed h-8 w-150 col-span-2 bg-white px-4 py-2 rounded-xl  "/>
-         </div>
-         
-
-
-      </form>
-       </div>
-
-      {/* Course Search & Registration */}
-      <div className=" p-2 bg-[#BEC4C8] max-w-4xl mx-auto mt-16 rounded-xl">
-        <h2 className=" text-center text-xl text-[#070055] font-bold  mb-6">Search Course</h2>
-        <form className="mb-8" onSubmit={(e) => e.preventDefault()}>
-
-          <div className="flex justify-start ml-6 mt-8">
-             <div className="relative w-full max-w-xl">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Course Code / Course Name"
-              className= "w-full px-4 py-3 pr-24 bg-[#F4F4F4] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+      {/* SLIDER TABS */}
+      <div className="max-w-md mx-auto mb-10">
+        <div className="relative bg-white rounded-full shadow overflow-hidden">
+          <div
+            className={`absolute top-0 left-0 h-full w-1/2 bg-blue-500 transition-transform duration-700 ease-in-out ${
+              activeView === "register" ? "translate-x-full" : ""
+            }`}
+          />
+          <div className="relative flex">
             <button
-              type="submit"
-              className="absolute right-1 top-1/2 transform -translate-y-1/2 px-6 py-2 bg-[#070055] text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onClick={() => setActiveView("view")}
+              className={`w-1/2 py-3 font-semibold z-10 transition ${
+                activeView === "view" ? "text-white" : "text-gray-700"
+              }`}
             >
-              Search
+              View Students
             </button>
-            </div>
+            <button
+              onClick={() => setActiveView("register")}
+              className={`w-1/2 py-3 font-semibold z-10 transition ${
+                activeView === "register" ? "text-white" : "text-gray-700"
+              }`}
+            >
+              Register Student
+            </button>
           </div>
-        </form>
-
-        {/* Courses Table */}
-        <div className=" p-6 overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 border border-gray-300 rounded-lg">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700 uppercase">Code</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700 uppercase">Name</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700 uppercase">Program</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700 uppercase">Credits</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700 uppercase"></th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredCourses.length === 0 ? (
-                <tr>
-                  <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
-                    No courses found matching "{searchQuery}"
-                  </td>
-                </tr>
-              ) : (
-                filteredCourses.map((course) => (
-                  <tr key={course.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {course.code}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">{course.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{course.program}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {course.credits} credits
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        onClick={() => handleRegister(course.id)}
-                        disabled={registeredCourses.find(rc => rc.id === course.id)}
-                        className={`px-4 py-2 rounded-md ${
-                          registeredCourses.find(rc => rc.id === course.id)
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-[#070055] text-white '
-                        }`}
-                      >
-                        {registeredCourses.find(rc => rc.id === course.id) ? 'Added' : 'Add'}
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
         </div>
       </div>
 
-      {/* Registered Courses */}
-{registeredCourses.length > 0 && (
-  <div className="p-6 bg-[#BEC4C8] max-w-4xl mx-auto mt-16 rounded-xl">
-    <h2 className="text-[#070055] text-center text-xl font-bold mb-4">
-      Courses
-    </h2>
+      {/* SLIDING CONTENT */}
+      <div className="relative overflow-hidden max-w-6xl mx-auto">
+        <div
+          className={`flex transition-transform duration-700 ease-in-out ${
+            activeView === "register" ? "-translate-x-full" : ""
+          }`}
+        >
+          {/* VIEW STUDENTS */}
+          <div className="w-full flex-shrink-0 px-4">
+            <div className="max-w-2xl mx-auto mb-6">
+              <input
+                type="text"
+                placeholder="Search by ID, Name, Reg No, Center"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-3 border rounded-lg"
+              />
+            </div>
 
-    <div className="bg-[#E5E7EB] p-3 ">
-      <table className="min-w-full ">
-        <thead>
-          <tr className="bg-[#F3F4F6] text-left text-sm font-medium">
-            <th className="px-4 py-2">Code</th>
-            <th className="px-4 py-2">Name</th>
-            <th className="px-4 py-2">Program</th>
-            <th className="px-4 py-2">Credits</th>
-          </tr>
-        </thead>
-        <tbody>
-          {registeredCourses.map((course) => (
-            <tr
-              key={course.id}
-              className="border-t border-gray-300 text-sm"
-            >
-              <td className="px-4 py-2">{course.code}</td>
-              <td className="px-4 py-2">{course.name}</td>
-              <td className="px-4 py-2">{course.program}</td>
-              <td className="px-4 py-2">{course.credits}</td>
-            </tr>
-          ))}
-        </tbody>
-        
-      </table>
-      <div className='w-full  p-2 bg-[#A8A8A8] flex justify-end rounded-xl '>
-          <button
-              type="submit"
-              className="px-7 py-2 bg-[#070055] text-white font-medium rounded-lg  focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              Register
-            </button>
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white border rounded-lg">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-6 py-3 text-left">Student ID</th>
+                    <th className="px-6 py-3 text-left">Name</th>
+                    <th className="px-6 py-3 text-left">Email</th>
+                    <th className="px-6 py-3 text-left">Center</th>
+                    <th className="px-6 py-3 text-left">Reg No</th>
+                    <th className="px-6 py-3 text-left">Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {filteredStudents.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" className="text-center py-6">
+                        No students found
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredStudents.map((s) => (
+                      <tr key={s.id} className="border-b hover:bg-gray-50">
+                        <td className="px-6 py-4">{s.s_no}</td>
+                        <td className="px-6 py-4">{s.student_name}</td>
+                        <td className="px-6 py-4">{s.email}</td>
+                        <td className="px-6 py-4">
+                          {centers[s.center] || s.center}
+                        </td>
+                        <td className="px-6 py-4">{s.reg_no}</td>
+
+                        <td className="px-6 py-4 flex gap-3">
+                          <button
+                            onClick={() => handleEdit(s)}
+                            className="px-3 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 transition"
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            onClick={() => handleDelete(s.id)}
+                            className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* REGISTER STUDENT */}
+          <div className="w-full flex-shrink-0 px-4">
+            <div className="max-w-xl mx-auto bg-white p-6 rounded-lg shadow">
+              <h2 className="text-2xl font-bold mb-6">
+                Register New Student
+              </h2>
+
+              <input
+                className="w-full mb-4 px-4 py-2 border rounded"
+                placeholder="Student Name"
+              />
+              <input
+                className="w-full mb-4 px-4 py-2 border rounded"
+                placeholder="Email"
+              />
+              <input
+                className="w-full mb-4 px-4 py-2 border rounded"
+                placeholder="Registration Number"
+              />
+
+              <button className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition">
+                Register Student
+              </button>
+            </div>
+          </div>
         </div>
-    </div>
-  </div>
-)}
-
+      </div>
     </div>
   );
 }

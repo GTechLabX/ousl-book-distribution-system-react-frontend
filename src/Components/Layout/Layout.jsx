@@ -1,34 +1,33 @@
-import React from 'react'
-import { Outlet } from 'react-router-dom'
-import Header from '../Side Panel/Header'
-import Menu from '../Side Panel/Menu'
-import Footer from '../Side Panel/Footer'
-
-
+import React from "react";
+import { Outlet } from "react-router-dom";
+import Header from "../Side Panel/Header";
+import Menu from "../Side Panel/Menu";
+import Footer from "../Side Panel/Footer";
 
 function Layout() {
   return (
-    <div className='flex flex-row h-screen  '>
-        <div className='w-1/5 bg-[#0c4187] flex flex-col justify-between  '>
-          <div className=' w-full h-1/5   '>
-            <Header />
-          </div>
-          <div className='w-full h-3/5'>
-            <Menu />
-          </div>
-          <div className='w-full h-1/5 '>
-            <Footer />
-          </div>
-        </div>
+    <div className="flex flex-col min-h-screen bg-gray-100">
+      
+      {/* Top Header */}
+      <Header username="Admin User" role="Administrator" />
 
-        <div className='flex-1 h-screen'> 
-            <Outlet />
-        </div>
+      {/* Body */}
+      <div className="flex flex-1 overflow-hidden">
+        
+        {/* Sidebar */}
+        <aside className="w-64 bg-gradient-to-b from-[#0c4187] to-[#070055] flex flex-col shadow-xl">
+          <Menu />
+          <Footer />
+        </aside>
 
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto p-6">
+          <Outlet />
+        </main>
 
-
+      </div>
     </div>
-  )
+  );
 }
 
-export default Layout
+export default Layout;

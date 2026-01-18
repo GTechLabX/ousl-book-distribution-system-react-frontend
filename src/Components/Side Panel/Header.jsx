@@ -1,19 +1,61 @@
-import React from 'react'
+import React from "react";
+import { FaUserCircle } from "react-icons/fa";
 
-function Header() {
+function Header({ username = "User", role = "Student", avatarUrl }) {
   return (
-    <div className='w-full h-full bg-bg-[#0c4187] flex flex-col items-left justify-top p-4 gap-2'>
-        
-        <div className='flex flex-col items-center'>
-            <h2 className='text-5xl font-bold text-white '>OUSL</h2>
-            <h4 className='text-2xl font-bold text-white '>Dispatch</h4>
+    <header
+      className="
+        w-full h-18
+        bg-gradient-to-r from-[#0c4187] to-[#070055]
+        flex items-center justify-between
+        px-6 py-3 shadow-md
+      "
+    >
+      {/* Left: Logo + Titles */}
+      <div className="flex items-center gap-4">
+        {/* Logo */}
+        <div className="w-11 h-11 bg-white rounded-full flex items-center justify-center shadow">
+          <img
+            src="/src/assets/logoOusl.png"
+            alt="OUSL Logo"
+            className="w-8 h-8 object-contain"
+          />
         </div>
-        <div className='flex flex-row items-center mt- gap-3'>
-            {/* <img className='w-8 h-8 rounded-full' src="" alt="" /> */}
-            <p className='text-md font-bold text-white '>Hello Username</p>
+
+        {/* Text */}
+        <div className="leading-tight">
+          <h1 className="text-white font-bold text-lg tracking-wide">
+            OUSL Dispatch
+          </h1>
+          <p className="text-white/70 text-xs tracking-wide">
+            Administration Panel
+          </p>
         </div>
-    </div>
-  )
+      </div>
+
+      {/* Right: User Info */}
+      <div className="flex items-center gap-3 bg-white/95 px-3 py-1.5 rounded-xl shadow-sm">
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt="User Avatar"
+            className="w-8 h-8 rounded-full object-cover"
+          />
+        ) : (
+          <FaUserCircle className="text-gray-400 text-3xl" />
+        )}
+
+        <div className="leading-tight text-right">
+          <p className="text-sm font-semibold text-[#0c4187]">
+            {username}
+          </p>
+          <p className="text-xs text-gray-500">
+            {role}
+          </p>
+        </div>
+      </div>
+    </header>
+  );
 }
 
-export default Header
+export default Header;
