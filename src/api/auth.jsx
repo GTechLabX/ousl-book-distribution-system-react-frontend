@@ -1,5 +1,5 @@
 // src/context/AuthContext.js
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import api from "../api/axios";
 
 const AuthContext = createContext();
@@ -7,16 +7,31 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
+  // Restore user from localStorage on reload
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) setUser(JSON.parse(storedUser));
+  }, []);
+
   const login = async (username, password) => {
-    const res = await api.post("/login/", { username, password });
+    try {
+      const res = await api.post("/login/", { username, password });
+      const { access, refresh, role, uuid } = res.data;
 
-    const { access, refresh, role } = res.data;
+      // Save tokens
+      localStorage.setItem("access_token", access);
+      localStorage.setItem("refresh_token", refresh);
 
-    localStorage.setItem("access_token", access);
-    localStorage.setItem("refresh_token", refresh);
+      // Save user info
+      const userData = { username, role, uuid };
+      setUser(userData);
+      localStorage.setItem("user", JSON.stringify(userData));
 
-    setUser({ username, role });
-    return role;
+      return role;
+    } catch (err) {
+      console.error("Login failed:", err.response?.data || err.message);
+      throw err;
+    }
   };
 
   const logout = () => {

@@ -1,108 +1,78 @@
-// src/Pages/Dashboard.jsx
-import React from "react";
-import { FaUsers, FaBoxOpen, FaWarehouse, FaClipboardList } from "react-icons/fa";
+import React from 'react';
+import { BarChart3, Users, DollarSign, ArrowUpRight, TrendingUp } from 'lucide-react';
 
-function Dashboard() {
+const Dashboard = () => {
+  // Sample data for the stats cards
+  const stats = [
+    { title: 'Total Revenue', value: '$45,231', icon: <DollarSign className="text-blue-600" />, change: '+12.5%', positive: true },
+    { title: 'Active Users', value: '2,405', icon: <Users className="text-purple-600" />, change: '+3.2%', positive: true },
+    { title: 'Sales Performance', value: '89%', icon: <TrendingUp className="text-emerald-600" />, change: '-2.1%', positive: false },
+    { title: 'Avg. Order Value', value: '$152', icon: <BarChart3 className="text-orange-600" />, change: '+4.3%', positive: true },
+  ];
+
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      {/* Page Title */}
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Dashboard</h1>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white p-4 rounded-xl shadow hover:shadow-lg transition duration-300">
-          <div className="flex items-center gap-4">
-            <FaUsers className="text-3xl text-[#0c4187]" />
-            <div>
-              <p className="text-gray-500 text-sm">Users</p>
-              <p className="text-2xl font-bold">245</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow hover:shadow-lg transition duration-300">
-          <div className="flex items-center gap-4">
-            <FaBoxOpen className="text-3xl text-[#0c4187]" />
-            <div>
-              <p className="text-gray-500 text-sm">Distributions</p>
-              <p className="text-2xl font-bold">152</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow hover:shadow-lg transition duration-300">
-          <div className="flex items-center gap-4">
-            <FaWarehouse className="text-3xl text-[#0c4187]" />
-            <div>
-              <p className="text-gray-500 text-sm">Inventory</p>
-              <p className="text-2xl font-bold">68</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow hover:shadow-lg transition duration-300">
-          <div className="flex items-center gap-4">
-            <FaClipboardList className="text-3xl text-[#0c4187]" />
-            <div>
-              <p className="text-gray-500 text-sm">Pending Tasks</p>
-              <p className="text-2xl font-bold">12</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
+    <div className="min-h-screen bg-gray-50 p-8">
+      {/* Header Section */}
       <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">Quick Actions</h2>
-        <div className="flex flex-wrap gap-4">
-          <button className="bg-[#0c4187] text-white py-2 px-4 rounded-lg shadow hover:bg-[#070055] transition duration-300">
-            Add User
-          </button>
-          <button className="bg-[#0c4187] text-white py-2 px-4 rounded-lg shadow hover:bg-[#070055] transition duration-300">
-            Add Distribution
-          </button>
-          <button className="bg-[#0c4187] text-white py-2 px-4 rounded-lg shadow hover:bg-[#070055] transition duration-300">
-            Add Inventory
-          </button>
-        </div>
+        <h1 className="text-3xl font-bold text-gray-900">Executive Overview</h1>
+        <p className="text-gray-500">Welcome back! Here’s what’s happening with your projects today.</p>
       </div>
 
-      {/* Recent Activity Table */}
-      <div className="bg-white p-4 rounded-xl shadow overflow-x-auto">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">Recent Activity</h2>
-        <table className="min-w-full border border-gray-200">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="py-2 px-4 text-left text-gray-600 font-medium">Date</th>
-              <th className="py-2 px-4 text-left text-gray-600 font-medium">User</th>
-              <th className="py-2 px-4 text-left text-gray-600 font-medium">Action</th>
-              <th className="py-2 px-4 text-left text-gray-600 font-medium">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="border-b hover:bg-gray-50 transition duration-200">
-              <td className="py-2 px-4">2026-01-14</td>
-              <td className="py-2 px-4">John Doe</td>
-              <td className="py-2 px-4">Added new user</td>
-              <td className="py-2 px-4 text-green-600 font-semibold">Success</td>
-            </tr>
-            <tr className="border-b hover:bg-gray-50 transition duration-200">
-              <td className="py-2 px-4">2026-01-13</td>
-              <td className="py-2 px-4">Jane Smith</td>
-              <td className="py-2 px-4">Updated inventory</td>
-              <td className="py-2 px-4 text-yellow-600 font-semibold">Pending</td>
-            </tr>
-            <tr className="border-b hover:bg-gray-50 transition duration-200">
-              <td className="py-2 px-4">2026-01-12</td>
-              <td className="py-2 px-4">Admin22</td>
-              <td className="py-2 px-4">Deleted distribution</td>
-              <td className="py-2 px-4 text-red-600 font-semibold">Failed</td>
-            </tr>
-          </tbody>
-        </table>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {stats.map((stat, index) => (
+          <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-2 bg-gray-50 rounded-lg">{stat.icon}</div>
+              <span className={`text-sm font-medium ${stat.positive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {stat.change}
+              </span>
+            </div>
+            <h3 className="text-gray-500 text-sm font-medium">{stat.title}</h3>
+            <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Main Content Area */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Large Chart Placeholder */}
+        <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100 min-h-[400px]">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold text-gray-900">Revenue Growth</h2>
+            <button className="text-sm text-blue-600 font-medium hover:underline">View Report</button>
+          </div>
+          <div className="w-full h-64 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center">
+            <p className="text-gray-400 italic text-sm">[Insert Chart Component Here]</p>
+          </div>
+        </div>
+
+        {/* Recent Activity List */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <h2 className="text-lg font-semibold text-gray-900 mb-6">Recent Transactions</h2>
+          <div className="space-y-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs">
+                    JD
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">John Doe</p>
+                    <p className="text-xs text-gray-500">2 mins ago</p>
+                  </div>
+                </div>
+                <span className="text-sm font-semibold text-gray-900">+$250.00</span>
+              </div>
+            ))}
+          </div>
+          <button className="w-full mt-8 py-2 text-sm font-medium text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100">
+            See All Activity
+          </button>
+        </div>
       </div>
     </div>
   );
-}
+};
 
 export default Dashboard;

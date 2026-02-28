@@ -1,7 +1,10 @@
 import React from "react";
 import { FaUserCircle } from "react-icons/fa";
+import { useAuth } from "../../api/auth"; // import the context
 
-function Header({ username = "User", role = "Student", avatarUrl }) {
+function Header({ avatarUrl }) {
+  const { user } = useAuth(); // get the logged-in user
+
   return (
     <header
       className="
@@ -47,10 +50,10 @@ function Header({ username = "User", role = "Student", avatarUrl }) {
 
         <div className="leading-tight text-right">
           <p className="text-sm font-semibold text-[#0c4187]">
-            {username}
+            {user?.username || "User"} {/* show username from context */}
           </p>
           <p className="text-xs text-gray-500">
-            {role}
+            {user?.role || "Student"} {/* show role from context */}
           </p>
         </div>
       </div>
