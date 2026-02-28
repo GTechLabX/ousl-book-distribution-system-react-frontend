@@ -15,7 +15,7 @@ const Sidebar = () => {
     { name: "Scan Student", to: "/scan-student", icon: <FaQrcode /> }, // <--- Added
     { name: "Distribution", to: "/distribution", icon: <FaBoxOpen /> },
     { name: "Inventory", to: "/inventory", icon: <FaWarehouse /> },
-    { name: "Registration", to: "/registration", icon: <FaUserPlus /> },
+    { name: "Student Registration", to: "/registration", icon: <FaUserPlus /> },
     { name: "Course Management", to: "/course-management", icon: <FaBook /> },
     { name: "User Management", to: "/user-management", icon: <FaUsers /> },
   ];
