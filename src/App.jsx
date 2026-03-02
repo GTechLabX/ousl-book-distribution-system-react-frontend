@@ -9,6 +9,9 @@ import CourseManagement from './Pages/CourseManagement';
 import Login from './Pages/Login'; 
 import PasswordReset from './Pages/passwordReset';
 import ScanStudent from './Pages/ScanStudent';
+import BookReservation from './Pages/BookReservation';
+import ViewBookReservation from './Pages/ViewBookReservation';
+
 
 function App() {
   return (
@@ -29,6 +32,8 @@ function App() {
           <Route path="registration" element={<Registration />} />
           <Route path="course-management" element={<CourseManagement />} />
           <Route path="user-management" element={<UsersManagement />} />
+          <Route path="book-reservation" element={<BookReservation />} />
+          <Route path="view-book-reservation" element={<ViewBookReservation />} />
         </Route>
 
       </Routes>

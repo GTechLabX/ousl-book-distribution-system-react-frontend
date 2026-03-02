@@ -6,7 +6,9 @@ import {
   FaUserPlus,
   FaBook,
   FaUsers,
-  FaQrcode, // icon for scan student
+  FaQrcode, 
+  FaCalendarCheck,
+  FaListUl,
 } from "react-icons/fa";
 
 const Sidebar = () => {
@@ -18,6 +20,8 @@ const Sidebar = () => {
     { name: "Student Registration", to: "/registration", icon: <FaUserPlus /> },
     { name: "Course Management", to: "/course-management", icon: <FaBook /> },
     { name: "User Management", to: "/user-management", icon: <FaUsers /> },
+    { name: "Make Reservation", to: "/book-reservation", icon: <FaCalendarCheck /> },
+    { name: "View Reservations", to: "/view-book-reservation", icon: <FaListUl /> },
   ];
 
   const linkClasses = ({ isActive }) =>
