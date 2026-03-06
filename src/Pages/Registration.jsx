@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "../api/axios";
 import { useAuth } from "../api/auth";
+import { useNavigate } from "react-router-dom";
 import { 
-  Plus, Trash2, Edit3, UserPlus, Users, 
+  Plus, Trash2, Edit3, Users, 
   Search, Loader2, X, MapPin, 
-  GraduationCap, Mail, CreditCard, Hash, CheckCircle2 
+  GraduationCap, Mail, CreditCard, Hash, CheckCircle2, AlertCircle
 } from 'lucide-react';
 
 function Registration() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // Data States
   const [students, setStudents] = useState([]);
@@ -22,6 +24,9 @@ function Registration() {
   const [successMsg, setSuccessMsg] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
+
+  // Delete Confirmation State
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, studentId: null, studentName: "" });
 
   const [formData, setFormData] = useState({
     student_name: "", nic: "", s_no: "", reg_no: "",
@@ -102,7 +107,6 @@ function Registration() {
         setSuccessMsg("Student enrolled successfully!");
       }
 
-      // Refresh list
       const res = await api.get("/student/", { headers });
       setStudents(res.data?.message || []);
       closeModal();
@@ -112,12 +116,23 @@ function Registration() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this record permanently?")) return;
+  // Open Fancy Delete Modal
+  const confirmDelete = (student) => {
+    setDeleteModal({ isOpen: true, studentId: student.id, studentName: student.student_name });
+  };
+
+  const handleDelete = async () => {
     try {
-      await api.delete(`/student/delete/${id}/`, { headers: { Authorization: `Token ${user?.token}` } });
-      setStudents(prev => prev.filter(s => s.id !== id));
-    } catch (err) { alert("Delete failed"); }
+      await api.delete(`/student/delete/${deleteModal.studentId}/`, { 
+        headers: { Authorization: `Token ${user?.token}` } 
+      });
+      setStudents(prev => prev.filter(s => s.id !== deleteModal.studentId));
+      setDeleteModal({ isOpen: false, studentId: null, studentName: "" });
+      setSuccessMsg("Record deleted successfully!");
+      setTimeout(() => setSuccessMsg(""), 3000);
+    } catch (err) { 
+      alert("Delete failed"); 
+    }
   };
 
   const filteredStudents = students.filter(s => 
@@ -146,13 +161,13 @@ function Registration() {
         </div>
 
         {successMsg && (
-          <div className="bg-emerald-50 text-emerald-600 p-4 rounded-xl mb-6 flex items-center gap-3 border border-emerald-100 animate-bounce">
-            <CheckCircle2 size={20} /> {successMsg}
+          <div className="fixed top-8 left-1/2 -translate-x-1/2 z-100 bg-emerald-500 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-top-4 duration-300">
+            <CheckCircle2 size={20} /> <span className="font-bold">{successMsg}</span>
           </div>
         )}
 
         {/* List View */}
-        <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-4xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-6 bg-slate-50/50 border-b border-slate-100">
             <div className="relative max-w-md">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -191,8 +206,11 @@ function Registration() {
                     </td>
                     <td className="px-8 py-5 text-right">
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => navigate(`/enrollment/${s.id}`, { state: s })} className="p-2 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-all" title="Course Enrollment">
+                          <GraduationCap size={18}/>
+                        </button>
                         <button onClick={() => openModal(s)} className="p-2 hover:bg-amber-50 hover:text-amber-600 rounded-lg transition-all"><Edit3 size={18}/></button>
-                        <button onClick={() => handleDelete(s.id)} className="p-2 hover:bg-rose-50 hover:text-rose-600 rounded-lg transition-all"><Trash2 size={18}/></button>
+                        <button onClick={() => confirmDelete(s)} className="p-2 hover:bg-rose-50 hover:text-rose-600 rounded-lg transition-all"><Trash2 size={18}/></button>
                       </div>
                     </td>
                   </tr>
@@ -203,13 +221,10 @@ function Registration() {
         </div>
       </div>
 
-      {/* POP-UP MODAL */}
+      {/* POP-UP MODAL (Add/Edit) */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={closeModal} />
-          
-          {/* Modal Content */}
           <div className="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="bg-slate-900 p-8 text-white flex justify-between items-center">
               <div>
@@ -237,11 +252,42 @@ function Registration() {
 
               <div className="flex gap-4 pt-4">
                 <button type="button" onClick={closeModal} className="flex-1 py-4 font-bold text-slate-500 hover:bg-slate-50 rounded-2xl transition-colors">Cancel</button>
-                <button type="submit" className="flex-[2] py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-lg shadow-indigo-100 transition-all active:scale-95">
+                <button type="submit" className="flex-2 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-lg shadow-indigo-100 transition-all active:scale-95">
                   {editingStudent ? "Save Changes" : "Confirm Enrollment"}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* EYE-CATCHING DELETE MODAL */}
+      {deleteModal.isOpen && (
+        <div className="fixed inset-0 z-70 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300" />
+          <div className="relative bg-white w-full max-w-md rounded-4xl shadow-2xl p-8 text-center animate-in zoom-in-95 duration-300">
+            <div className="w-20 h-20 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle size={40} />
+            </div>
+            <h3 className="text-2xl font-black text-slate-900 mb-2">Are you sure?</h3>
+            <p className="text-slate-500 mb-8">
+              You are about to delete <span className="font-bold text-slate-800">{deleteModal.studentName}</span>. 
+              This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setDeleteModal({ isOpen: false, studentId: null, studentName: "" })}
+                className="flex-1 py-4 font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-2xl transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleDelete}
+                className="flex-1 py-4 font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-2xl shadow-lg shadow-rose-100 transition-all active:scale-95"
+              >
+                Yes, Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

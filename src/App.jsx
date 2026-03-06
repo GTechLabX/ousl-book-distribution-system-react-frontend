@@ -11,6 +11,7 @@ import PasswordReset from './Pages/passwordReset';
 import ScanStudent from './Pages/ScanStudent';
 import BookReservation from './Pages/BookReservation';
 import ViewBookReservation from './Pages/ViewBookReservation';
+import Enrollment from './Pages/Enrollment';
 
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
           <Route path="user-management" element={<UsersManagement />} />
           <Route path="book-reservation" element={<BookReservation />} />
           <Route path="view-book-reservation" element={<ViewBookReservation />} />
+          <Route path="/enrollment/:id" element={<Enrollment />} />
         </Route>
 
       </Routes>
