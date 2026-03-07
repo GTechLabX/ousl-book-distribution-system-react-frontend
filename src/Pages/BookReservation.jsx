@@ -1,136 +1,126 @@
 import React, { useState, useEffect } from "react";
 import { 
-  FaSearch, FaBookmark, FaCalendarCheck, 
-  FaMapMarkerAlt, FaExclamationTriangle, FaPhoneAlt, FaWarehouse, FaHistory 
+  FaSearch, FaBookmark, FaMapMarkerAlt, FaExclamationTriangle, 
+  FaWarehouse, FaHistory, FaCheckCircle, FaClock, FaBookOpen, FaBan, FaInfoCircle
 } from "react-icons/fa";
+import { Loader2, CheckCircle2, ChevronRight } from "lucide-react";
 import api from "../api/axios";
 import { useAuth } from "../api/auth";
 
 function BookReservation() {
   const { user } = useAuth();
   
-  // Data States
+  const [studentInfo, setStudentInfo] = useState(null);
+  const [registeredCourses, setRegisteredCourses] = useState([]);
   const [centers, setCenters] = useState([]);
   const [books, setBooks] = useState([]);
   const [myReservations, setMyReservations] = useState([]);
-  
-  // UI States
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCenterId, setSelectedCenterId] = useState("");
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
 
-  // 1. Load Centers and User Reservations on Mount
+  const notify = (message, type = 'success') => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 4000);
+  };
+
   useEffect(() => {
-    const fetchInitialData = async () => {
+    const fetchStudentData = async () => {
       try {
-        const [centersRes, resRes] = await Promise.all([
+        setLoading(true);
+        const [studentRes, centersRes, resRes] = await Promise.all([
+          api.get("/student-book-reservation/1/"), 
           api.get("/centers/"),
           api.get("/book-reservations/")
         ]);
+        if (studentRes.data.success) {
+          setStudentInfo(studentRes.data.data.student);
+          setRegisteredCourses(studentRes.data.data.registered_courses);
+        }
         setCenters(centersRes.data.success ? centersRes.data.data : []);
         setMyReservations(resRes.data.success ? resRes.data.data : []);
       } catch (err) {
-        console.error("Initial fetch error:", err);
+        notify("Server Connection Error", "error");
+      } finally {
+        setLoading(false);
       }
     };
-    if (user) fetchInitialData();
+    if (user) fetchStudentData();
   }, [user]);
 
-  // 2. Fetch books based on selected center
   useEffect(() => {
     if (selectedCenterId) {
-      fetchCenterInventory(selectedCenterId);
-    } else {
-      setBooks([]);
+      api.get(`/center-books/?center_id=${selectedCenterId}`)
+         .then(res => setBooks(res.data.success ? res.data.data : []));
     }
   }, [selectedCenterId]);
 
-  const fetchCenterInventory = async (id) => {
-    setLoading(true);
+  const handleReserve = async (bookId, courseCode) => {
     try {
-      const res = await api.get(`/center-books/?center_id=${id}`);
-      // Mapping based on your JSON structure: "book_name", "allocation_quantity"
-      setBooks(res.data.success ? res.data.data : []);
-    } catch (err) {
-      console.error("Inventory error:", err);
-      setBooks([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 3. Submit Reservation (Saves as PENDING in DB)
-  const handleReserve = async (bookId) => {
-    if (!selectedCenterId) return alert("Please select a center.");
-    if (!window.confirm("Confirm reservation request?")) return;
-
-    try {
-      const payload = {
-        book: bookId,
-        center: selectedCenterId,
-        status: "PENDING"
-      };
-
-      const res = await api.post("/book-reservation/add/", payload);
-
-      if (res.status === 201 || res.data.success) {
-        alert("✅ Request sent! Waiting for center approval.");
-        // Refresh everything
-        fetchCenterInventory(selectedCenterId);
+      const res = await api.post("/book-reservation/add/", { 
+        book: bookId, center: selectedCenterId, course_code: courseCode, status: "PENDING" 
+      });
+      if (res.data.success) {
+        notify("Reservation request sent successfully!");
         const resUpdate = await api.get("/book-reservations/");
         setMyReservations(resUpdate.data.success ? resUpdate.data.data : []);
       }
     } catch (err) {
-      alert("Error: " + (err.response?.data?.message || "Check your existing reservations."));
+      notify(err.response?.data?.message || "Already requested", "error");
     }
   };
 
-  // Safe Filtering Logic (prevents toLowerCase crash)
   const filteredBooks = books.filter(b => 
-    (b.book_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (b.center_name || "").toLowerCase().includes(searchQuery.toLowerCase())
+    registeredCourses.some(c => c.course_code === b.course_code) &&
+    b.book_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const activeCenter = centers.find(c => c.id === parseInt(selectedCenterId));
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <Loader2 className="animate-spin text-indigo-600" size={40} />
+    </div>
+  );
 
   return (
-    <div className="p-4 md:p-10 bg-gray-50 min-h-screen">
+    <div className="min-h-screen bg-[#F8FAFC] p-6 md:p-12 font-sans">
       <div className="max-w-7xl mx-auto">
         
-        {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-3xl font-black text-gray-800 flex items-center gap-3">
-            <FaWarehouse className="text-[#0c4187]" /> Regional Dispatch
-          </h1>
-          <p className="text-gray-500 font-medium">Reserve available books from your local center.</p>
-        </div>
-
-        {/* Selection Controls */}
-        <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm mb-10 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="text-[10px] font-black text-gray-400 uppercase mb-2 block">1. Select Center</label>
-            <div className="relative">
-              <FaMapMarkerAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500" />
-              <select 
-                className="w-full pl-11 pr-4 py-4 bg-gray-50 border-none rounded-2xl font-bold text-gray-700 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                value={selectedCenterId}
-                onChange={(e) => setSelectedCenterId(e.target.value)}
-              >
-                <option value="">-- Choose Center --</option>
-                {centers.map(c => <option key={c.id} value={c.id}>{c.c_name}</option>)}
-              </select>
+        {/* Profile Row */}
+        <div className="bg-white rounded-[2rem] p-8 mb-8 border border-slate-200 flex flex-col md:flex-row justify-between items-center shadow-sm">
+          <div className="flex items-center gap-6">
+            <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center text-white font-black text-xl">
+              {studentInfo?.name?.charAt(0)}
+            </div>
+            <div>
+              <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">{studentInfo?.name}</h1>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{studentInfo?.reg_no} • Enrolled 2026</p>
             </div>
           </div>
+          <div className="mt-4 md:mt-0 px-6 py-3 bg-indigo-50 rounded-xl">
+             <span className="text-xs font-black text-indigo-600 uppercase tracking-widest">Student Portal Active</span>
+          </div>
+        </div>
 
-          <div>
-            <label className="text-[10px] font-black text-gray-400 uppercase mb-2 block">2. Filter Books</label>
+        {/* Action Bar */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+          <div className="lg:col-span-4">
+            <select 
+              className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition-all"
+              value={selectedCenterId}
+              onChange={(e) => setSelectedCenterId(e.target.value)}
+            >
+              <option value="">Select Dispatch Center</option>
+              {centers.map(c => <option key={c.id} value={c.id}>{c.c_name}</option>)}
+            </select>
+          </div>
+          <div className="lg:col-span-8">
             <div className="relative">
-              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <FaSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" />
               <input 
-                disabled={!selectedCenterId}
                 type="text"
-                placeholder="Search by book name..."
-                className="w-full pl-11 pr-4 py-4 bg-gray-50 border-none rounded-2xl font-medium outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                placeholder="Search materials by name or course code..."
+                className="w-full pl-14 pr-6 py-4 bg-white border border-slate-200 rounded-2xl font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition-all"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -138,74 +128,98 @@ function BookReservation() {
           </div>
         </div>
 
-        {/* List View */}
-        <div className="space-y-4">
-          {!selectedCenterId ? (
-            <div className="text-center py-20 bg-white rounded-[2.5rem] border border-dashed border-gray-200 text-gray-400 font-bold uppercase tracking-widest">
-              Please choose a center to view available books
-            </div>
-          ) : loading ? (
-            <div className="text-center py-20 animate-pulse text-gray-400 italic">Syncing inventory...</div>
-          ) : filteredBooks.length > 0 ? (
-            filteredBooks.map((book) => (
-              <div key={book.id} className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col md:flex-row justify-between items-center group hover:border-blue-200 transition-all">
-                <div className="flex items-center gap-5 w-full md:w-auto">
-                  <div className="p-4 bg-blue-50 text-[#0c4187] rounded-2xl group-hover:bg-[#0c4187] group-hover:text-white transition-colors">
-                    <FaBookmark />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-800 text-lg leading-tight">{book.book_name}</h3>
-                    <p className="text-xs text-gray-400 font-medium uppercase mt-1">Available at {book.center_name}</p>
-                  </div>
-                </div>
+        {/* List Header */}
+        <div className="hidden md:grid grid-cols-12 px-10 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+          <div className="col-span-5">Material & Course Code</div>
+          <div className="col-span-2 text-center">Stock Level</div>
+          <div className="col-span-3 text-center">Issuance Status</div>
+          <div className="col-span-2 text-right">Action</div>
+        </div>
 
-                <div className="flex items-center gap-8 w-full md:w-auto mt-4 md:mt-0 border-t md:border-t-0 pt-4 md:pt-0">
-                  <div className="text-center">
-                    <p className="text-[10px] font-black text-gray-300 uppercase">Stock</p>
-                    <p className={`font-black ${book.allocation_quantity > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {book.allocation_quantity}
-                    </p>
-                  </div>
+        {/* Row-Wise List */}
+        <div className="space-y-3">
+          {!selectedCenterId ? (
+            <div className="bg-white border-2 border-dashed border-slate-200 rounded-[2rem] py-20 text-center">
+              <FaWarehouse className="mx-auto text-slate-100 mb-4" size={48} />
+              <p className="text-slate-400 font-black uppercase text-[10px] tracking-[0.3em]">Please choose a center to view materials</p>
+            </div>
+          ) : filteredBooks.length > 0 ? (
+            filteredBooks.map((book) => {
+              const courseMeta = registeredCourses.find(c => c.course_code === book.course_code);
+              const canIssue = courseMeta?.is_book_available;
+
+              return (
+                <div key={book.id} className={`grid grid-cols-1 md:grid-cols-12 items-center bg-white px-10 py-6 rounded-3xl border border-slate-100 shadow-sm transition-all hover:shadow-md ${!canIssue && 'bg-slate-50 opacity-75'}`}>
                   
-                  <button 
-                    onClick={() => handleReserve(book.books)} // Using book ID from your JSON
-                    disabled={book.allocation_quantity <= 0}
-                    className="flex-grow md:flex-initial px-8 py-3 bg-[#0c4187] text-white rounded-2xl font-black text-xs tracking-widest hover:bg-black transition-all disabled:bg-gray-100 disabled:text-gray-300"
-                  >
-                    RESERVE
-                  </button>
+                  {/* Book Info */}
+                  <div className="col-span-5 flex items-center gap-5">
+                    <div className={`p-3 rounded-xl ${canIssue ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-200 text-slate-400'}`}>
+                      <FaBookmark size={18} />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-slate-900 uppercase text-sm leading-none mb-1">{book.book_name}</h3>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{book.course_code}</p>
+                    </div>
+                  </div>
+
+                  {/* Stock */}
+                  <div className="col-span-2 text-center mt-4 md:mt-0">
+                    <div className="md:hidden text-[9px] font-black text-slate-300 uppercase mb-1">Stock</div>
+                    <span className={`text-sm font-black ${book.allocation_quantity > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {book.allocation_quantity} <span className="text-[9px] text-slate-300">PCS</span>
+                    </span>
+                  </div>
+
+                  {/* Issuance Status */}
+                  <div className="col-span-3 text-center mt-4 md:mt-0">
+                    <div className="md:hidden text-[9px] font-black text-slate-300 uppercase mb-1">Status</div>
+                    {canIssue ? (
+                      <span className="flex items-center justify-center gap-2 text-[10px] font-black text-indigo-600 uppercase tracking-widest">
+                        <FaCheckCircle className="text-indigo-400" /> Eligible for Issue
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center gap-2 text-[10px] font-black text-rose-500 uppercase tracking-widest bg-rose-50 px-3 py-1 rounded-lg border border-rose-100">
+                        <FaBan size={10} /> Do not issue book
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Action */}
+                  <div className="col-span-2 text-right mt-6 md:mt-0">
+                    {canIssue ? (
+                      <button 
+                        onClick={() => handleReserve(book.books, book.course_code)}
+                        disabled={book.allocation_quantity <= 0}
+                        className="w-full md:w-auto px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 transition-all active:scale-95 disabled:bg-slate-100 disabled:text-slate-300"
+                      >
+                        Request
+                      </button>
+                    ) : (
+                      <button disabled className="w-full md:w-auto px-6 py-3 bg-transparent border border-slate-200 text-slate-300 rounded-xl font-black text-[10px] uppercase tracking-widest cursor-not-allowed">
+                        Locked
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           ) : (
-            <div className="text-center py-10 text-gray-400">No books found matching your search.</div>
+            <div className="bg-white p-12 rounded-[2rem] text-center border border-slate-200">
+               <FaInfoCircle className="mx-auto text-slate-200 mb-2" />
+               <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">No matching course materials found</p>
+            </div>
           )}
         </div>
 
-        {/* Reservation History Section */}
-        {myReservations.length > 0 && (
-          <div className="mt-16">
-            <h2 className="text-xl font-black text-gray-800 mb-6 flex items-center gap-2">
-              <FaHistory className="text-blue-600" /> My Requests
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {myReservations.map(res => (
-                <div key={res.id} className="p-4 bg-white border border-gray-100 rounded-2xl flex justify-between items-center">
-                  <div>
-                    <p className="font-bold text-gray-700 text-sm">{res.book_name}</p>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase">{res.status}</p>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border ${
-                    res.approved ? "bg-green-50 text-green-500 border-green-100" : "bg-orange-50 text-orange-500 border-orange-100"
-                  }`}>
-                    {res.approved ? "Approved" : "Pending"}
-                  </span>
-                </div>
-              ))}
-            </div>
+        {/* Notification Toast */}
+        {notification.show && (
+          <div className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 px-8 py-4 rounded-full shadow-2xl border animate-in slide-in-from-bottom-5 ${
+            notification.type === 'success' ? 'bg-slate-900 text-white border-slate-800' : 'bg-rose-600 text-white border-rose-500'
+          }`}>
+            {notification.type === 'success' ? <CheckCircle2 className="text-emerald-400" size={18} /> : <FaExclamationTriangle size={18} />}
+            <span className="text-[10px] font-black uppercase tracking-widest">{notification.message}</span>
           </div>
         )}
-
       </div>
     </div>
   );

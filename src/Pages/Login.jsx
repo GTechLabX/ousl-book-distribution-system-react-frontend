@@ -20,13 +20,12 @@ function Login() {
     setError("");
 
     try {
-      const role = await login(username, password);
+      // The login function sets the user/role in your Auth Context
+      await login(username, password);
 
-      // Redirect based on role
-      if (role === "admin") navigate("/dashboard");
-      else if (role === "staff") navigate("/inventory");
-      else if (role === "student") navigate("/registration");
-      else navigate("/");
+      // All roles (superadmin, staff, student) go to the same dashboard
+      navigate("/dashboard");
+      
     } catch (err) {
       console.error(err);
       setError("Invalid username or password");
