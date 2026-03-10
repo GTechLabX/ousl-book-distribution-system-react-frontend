@@ -28,7 +28,8 @@ const Sidebar = () => {
     { name: "Student Registration", to: "/registration", icon: <FaUserPlus />, roles: ["superadmin", "admin"] },
     { name: "Course Management", to: "/course-management", icon: <FaBook />, roles: ["superadmin", "admin"] },
     { name: "User Management", to: "/user-management", icon: <FaUsers />, roles: ["superadmin", "admin"] },
-    { name: "Make Reservation", to: "/book-reservation", icon: <FaCalendarCheck />, roles: ["superadmin", "admin", "staff", "student"] },
+    { name: "Make Reservation", to: "/book-reservation", icon: <FaCalendarCheck />, roles: ["student"] },
+  //    { name: "Make Reservation", to: "/book-reservation", icon: <FaCalendarCheck />, roles: ["superadmin", "admin", "staff", "student"] },
     { name: "View Reservations", to: "/view-book-reservation", icon: <FaListUl />, roles: ["superadmin", "admin", "staff"] },
   ];
 
