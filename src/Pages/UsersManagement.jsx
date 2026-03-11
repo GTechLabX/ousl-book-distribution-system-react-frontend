@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { 
   FaUserPlus, FaUserEdit, FaUserSlash, FaSearch, FaUserShield, 
   FaUsers, FaIdBadge, FaTimes, FaUserLock, FaEnvelope, 
-  FaUser, FaLock, FaCheckCircle, FaSpinner, FaExclamationTriangle 
+  FaUser, FaLock, FaCheckCircle, FaSpinner, FaExclamationTriangle,
+  FaMapMarkerAlt 
 } from "react-icons/fa";
 import api from "../api/axios";
 import { useAuth } from "../api/auth";
@@ -10,6 +11,7 @@ import { useAuth } from "../api/auth";
 function UsersManagement() {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
+  const [centers, setCenters] = useState([]); 
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,7 +28,8 @@ function UsersManagement() {
     username: "",
     email: "",
     password: "",
-    role: "STAFF"
+    role: "STAFF",
+    center: "" 
   });
 
   const ROLES = [
@@ -36,10 +39,16 @@ function UsersManagement() {
     { value: "STUDENT", label: "Student", icon: <FaUsers /> },
   ];
 
-  useEffect(() => { fetchUsers(); }, []);
+  useEffect(() => { 
+    const initData = async () => {
+      setLoading(true);
+      await Promise.all([fetchUsers(), fetchCenters()]);
+      setLoading(false);
+    };
+    initData();
+  }, []);
 
   const fetchUsers = async () => {
-    setLoading(true);
     try {
       const res = await api.get("/users/", {
         headers: { Authorization: `Bearer ${currentUser?.access}` }
@@ -47,21 +56,32 @@ function UsersManagement() {
       setUsers(res.data.success ? res.data.data : []);
     } catch (err) { 
       console.error("Error fetching users:", err); 
-    } finally { 
-      setLoading(false); 
+    }
+  };
+
+  const fetchCenters = async () => {
+    try {
+      const res = await api.get("/centers/");
+      if (res.data.success) {
+        setCenters(res.data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching centers:", err);
     }
   };
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
     if (error) setError(null);
   };
 
   const openRegisterModal = () => {
     setIsEditMode(false);
     setSelectedUserId(null);
-    setFormData({ username: "", email: "", password: "", role: "STAFF" });
+    setFormData({ username: "", email: "", password: "", role: "STAFF", center: "" });
     setUseUsernameAsPass(true);
+    setError(null);
     setShowModal(true);
   };
 
@@ -72,73 +92,81 @@ function UsersManagement() {
       username: u.user.username || "",
       email: u.user.email || "",
       password: "", 
-      role: u.custom_user?.role || "STAFF"
+      role: u.custom_user?.role || "STAFF",
+      center: u.profile?.center_id || u.custom_user?.center || "" 
     });
     setUseUsernameAsPass(false);
+    setError(null);
     setShowModal(true);
-  };
-
-  const openDeleteModal = (u) => {
-    setSelectedUserId(u.user.id);
-    setShowDeleteModal(true);
   };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    
-    let payload;
+    setError(null);
 
-    if (isEditMode) {
-      // Nested Payload Structure for Update
-      payload = {
-        user: {
-          username: formData.username,
-          email: formData.email
-        },
-        custom_user: {
-          role: formData.role
-        },
-        profile: {}
-      };
-
-      // Only add password if it's not empty
-      if (formData.password && formData.password.trim() !== "") {
-        payload.user.password = formData.password;
-      }
-    } else {
-      // Flat structure for Registration
-      payload = {
+    // EXACT structure expected by your backend
+    const payload = {
+      user: {
         username: formData.username,
         email: formData.email,
-        role: formData.role,
-        password: useUsernameAsPass ? formData.username : formData.password
-      };
-    }
+        password: isEditMode 
+          ? (formData.password || undefined) 
+          : (useUsernameAsPass ? formData.username : formData.password)
+      },
+      custom_user: {
+        role: formData.role
+      },
+      profile: {
+        center_id: formData.center ? parseInt(formData.center) : null
+      }
+    };
 
     try {
       if (isEditMode) {
         await api.put(`/user/update/${selectedUserId}/`, payload);
       } else {
-        await api.post("/create-staff/", payload);
+        // Updated to your specific endpoint
+        await api.post("/user/add/", payload);
       }
       setShowModal(false);
       fetchUsers();
     } catch (err) {
-      setError(err.response?.data?.message || "Operation failed.");
+      // Handles the nested error structure from your backend
+      if (err.response?.data?.errors) {
+        const errs = err.response.data.errors;
+        let messages = [];
+
+        // Recursive function to find all error strings in nested objects
+        const flatten = (obj) => {
+          Object.values(obj).forEach(val => {
+            if (Array.isArray(val)) messages.push(...val);
+            else if (typeof val === 'object') flatten(val);
+          });
+        };
+        flatten(errs);
+        setError(messages.join(" | "));
+      } else {
+        setError(err.response?.data?.message || "Connection failed.");
+      }
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDeleteConfirm = async () => {
+    if (selectedUserId === currentUser?.id) {
+        alert("Security Override: You cannot terminate your own account.");
+        setShowDeleteModal(false);
+        return;
+    }
     setSubmitting(true);
     try {
       await api.delete(`/user/delete/${selectedUserId}/`);
       setShowDeleteModal(false);
       fetchUsers();
     } catch (err) { 
-      alert("Failed to delete user."); 
+      setError("Deletion protocol failed."); 
     } finally { 
       setSubmitting(false); 
     }
@@ -155,7 +183,8 @@ function UsersManagement() {
   };
 
   const filteredUsers = users.filter(u => 
-    u.user?.username?.toLowerCase().includes(searchQuery.toLowerCase())
+    u.user?.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    u.user?.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -207,7 +236,7 @@ function UsersManagement() {
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
                 <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase">User Identity</th>
-                <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase">Contact/Info</th>
+                <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase">Assigned Center</th>
                 <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase">System Role</th>
                 <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase text-center">Actions</th>
               </tr>
@@ -215,8 +244,13 @@ function UsersManagement() {
             <tbody className="divide-y divide-gray-50">
               {loading ? (
                 <tr><td colSpan="4" className="text-center py-20 text-gray-400 italic">Syncing user directory...</td></tr>
+              ) : filteredUsers.length === 0 ? (
+                <tr><td colSpan="4" className="text-center py-20 text-gray-400 italic">No users found.</td></tr>
               ) : filteredUsers.map((u) => {
                 const badge = getRoleBadge(u.custom_user?.role);
+                const centerId = u.profile?.center_id || u.custom_user?.center;
+                const assignedCenter = centers.find(c => c.id === centerId);
+
                 return (
                   <tr key={u.user?.id} className="hover:bg-indigo-50/30 transition-colors">
                     <td className="py-4 px-6">
@@ -226,13 +260,23 @@ function UsersManagement() {
                         </div>
                         <div>
                           <p className="font-bold text-gray-800 uppercase text-sm">{u.user?.username}</p>
-                          <p className="text-[10px] text-gray-400 font-mono">{u.user?.email}</p>
+                          <p className="text-[10px] text-gray-400 font-mono">{u.user?.email || "N/A"}</p>
                         </div>
                       </div>
                     </td>
                     <td className="py-4 px-6">
-                      <p className="text-sm text-gray-700 font-semibold">{u.custom_user?.phone_no || "No Contact"}</p>
-                      <p className="text-[10px] text-gray-400 uppercase font-bold">{u.custom_user?.gender || "Gender N/A"}</p>
+                      <div className="flex items-center gap-2">
+                          <FaMapMarkerAlt className="text-indigo-400" size={12} />
+                          <div>
+                            <p className="text-sm text-gray-700 font-semibold">
+                              {assignedCenter?.c_name || "Head Office"}
+                            </p>
+                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">
+                              {/* Adjusted to look into profile or custom_user where phone numbers typically reside */}
+                              Contact No: {u.profile?.phone_no || u.custom_user?.phone_no || "N/A"}
+                            </p>
+                          </div>
+                        </div>
                     </td>
                     <td className="py-4 px-6">
                       <span className={`px-3 py-1 rounded-full text-[10px] font-black border uppercase ${badge.style}`}>
@@ -242,7 +286,7 @@ function UsersManagement() {
                     <td className="py-4 px-6 text-center">
                       <div className="flex justify-center gap-2">
                         <button onClick={() => openEditModal(u)} className="text-indigo-600 p-2 hover:bg-indigo-100 rounded-lg transition-colors"><FaUserEdit /></button>
-                        <button onClick={() => openDeleteModal(u)} className="text-red-600 p-2 hover:bg-red-100 rounded-lg transition-colors"><FaUserSlash /></button>
+                        <button onClick={() => { setSelectedUserId(u.user.id); setShowDeleteModal(true); }} className="text-red-600 p-2 hover:bg-red-100 rounded-lg transition-colors"><FaUserSlash /></button>
                       </div>
                     </td>
                   </tr>
@@ -253,7 +297,7 @@ function UsersManagement() {
         </div>
       </div>
 
-      {/* REGISTRATION / EDIT MODAL */}
+      {/* MODAL */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
@@ -262,8 +306,14 @@ function UsersManagement() {
               <button onClick={() => setShowModal(false)}><FaTimes /></button>
             </div>
 
-            <form onSubmit={handleFormSubmit} className="p-6 space-y-4">
-              {error && <div className="p-3 bg-red-50 text-red-600 rounded-xl text-xs font-bold border border-red-100">{error}</div>}
+            <form onSubmit={handleFormSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+              {/* ERROR NOTIFICATION BOX */}
+              {error && (
+                <div className="p-3 bg-red-50 text-red-600 rounded-xl text-xs font-bold border border-red-100 flex items-start gap-2 animate-pulse">
+                  <FaExclamationTriangle className="mt-0.5 flex-shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
 
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Username</label>
@@ -278,6 +328,25 @@ function UsersManagement() {
                 <div className="relative">
                   <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
                   <input required type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Assigned Center</label>
+                <div className="relative">
+                  <FaMapMarkerAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                  <select 
+                    required 
+                    name="center" 
+                    value={formData.center} 
+                    onChange={handleInputChange} 
+                    className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold appearance-none cursor-pointer"
+                  >
+                    <option value="">Select a Center</option>
+                    {centers.map(center => (
+                      <option key={center.id} value={center.id}>{center.c_name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -303,10 +372,7 @@ function UsersManagement() {
 
               <div className="pt-2 space-y-3">
                 {!isEditMode && (
-                  <div 
-                    onClick={() => setUseUsernameAsPass(!useUsernameAsPass)}
-                    className="flex items-center gap-2 cursor-pointer select-none"
-                  >
+                  <div onClick={() => setUseUsernameAsPass(!useUsernameAsPass)} className="flex items-center gap-2 cursor-pointer select-none">
                     <div className={`w-5 h-5 rounded flex items-center justify-center border-2 transition-colors ${useUsernameAsPass ? 'bg-indigo-600 border-indigo-600' : 'border-gray-200'}`}>
                       {useUsernameAsPass && <FaCheckCircle className="text-white text-[10px]" />}
                     </div>
@@ -324,7 +390,7 @@ function UsersManagement() {
                       value={formData.password} 
                       onChange={handleInputChange} 
                       className="w-full pl-11 pr-4 py-3 bg-gray-50 border-2 border-indigo-500 rounded-xl outline-none font-bold" 
-                      placeholder={isEditMode ? "New Password (Leave blank to keep current)" : "Custom Password"}
+                      placeholder={isEditMode ? "New Password (Optional)" : "Custom Password"}
                     />
                   </div>
                 )}
@@ -334,25 +400,38 @@ function UsersManagement() {
                 <button type="submit" disabled={submitting} className={`w-full py-4 text-white rounded-2xl font-black shadow-lg disabled:opacity-50 flex items-center justify-center gap-2 transition-all active:scale-95 ${isEditMode ? 'bg-amber-500 hover:bg-amber-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
                   {submitting ? <FaSpinner className="animate-spin" /> : isEditMode ? "UPDATE CHANGES" : "REGISTER ACCOUNT"}
                 </button>
-              </div>
+              </div>   
             </form>
           </div>
         </div>
       )}
 
-      {/* DELETE CONFIRMATION MODAL - Updated to be larger */}
+      {/* DELETE MODAL */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 text-center animate-in zoom-in duration-150">
             <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <FaExclamationTriangle size={40} />
             </div>
-            <h2 className="text-2xl font-black text-gray-800 mb-2">Are you sure?</h2>
-            <p className="text-gray-500 mb-6 text-sm">This action cannot be undone. The user will be permanently removed from the system.</p>
+            
+            <h2 className="text-2xl font-black text-gray-800 mb-1">Permanent Deletion</h2>
+            <p className="text-gray-500 text-sm mb-6 leading-relaxed">
+              This action is <span className="text-red-600 font-bold">irreversible</span>. All data associated with this user will be purged from the system.
+            </p>
+
             <div className="flex gap-3">
-              <button onClick={() => setShowDeleteModal(false)} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold">Cancel</button>
-              <button onClick={handleDeleteConfirm} disabled={submitting} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold flex justify-center items-center gap-2">
-                {submitting ? <FaSpinner className="animate-spin" /> : "Delete"}
+              <button 
+                onClick={() => setShowDeleteModal(false)} 
+                className="flex-1 py-4 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition-colors"
+              >
+                Keep Account
+              </button>
+              <button 
+                onClick={handleDeleteConfirm} 
+                disabled={submitting} 
+                className="flex-1 py-4 bg-red-600 text-white rounded-2xl font-black flex justify-center items-center gap-2 hover:bg-red-700 transition-all shadow-lg shadow-red-200 active:scale-95 disabled:opacity-50"
+              >
+                {submitting ? <FaSpinner className="animate-spin" /> : "DELETE FOREVER"}
               </button>
             </div>
           </div>
