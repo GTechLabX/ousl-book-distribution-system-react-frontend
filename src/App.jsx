@@ -13,24 +13,35 @@ import BookReservation from './Pages/BookReservation';
 import ViewBookReservation from './Pages/ViewBookReservation';
 import Enrollment from './Pages/Enrollment';
 import ViewCenterAllocation from './Pages/ViewCenterAllocationBook';
+import StudentDashboard from './Pages/StudentDashboard';
+import { useAuth } from "./api/auth";
+
+// Smart Component to decide which dashboard to show at the index path
+const DashboardHome = () => {
+  const { user } = useAuth();
+  const role = user?.role?.toLowerCase();
+
+  if (role === 'student') {
+    return <StudentDashboard />;
+  }
+  return <Dashboard />;
+};
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Routes - No UUID needed here */}
+        {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/password-reset" element={<PasswordReset />} />
 
-        {/* Protected Routes with Layout 
-          We change path="/" to path="/:uuid" 
-          This makes the URL look like: /d85a43.../distribution
-        */}
+        {/* Protected Routes with Layout */}
         <Route path="/:uuid" element={<Layout />}>
-          {/* Index route for when user hits just /uuid/ */}
-          <Route index element={<Dashboard />} /> 
+          {/* Index route handles automatic steering */}
+          <Route index element={<DashboardHome />} /> 
           
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="student-dashboard" element={<StudentDashboard />} />
           <Route path="scan-student" element={<ScanStudent />} />
           <Route path="distribution" element={<Distribution />} />
           <Route path="inventory" element={<Inventory />} />
@@ -43,11 +54,11 @@ function App() {
           <Route path="enrollment/:id" element={<Enrollment />} />
         </Route>
 
-        {/* Global Redirect: If someone hits "/" without a UUID, send to login */}
+        {/* Global Redirects */}
         <Route path="/" element={<Navigate to="/login" replace />} />
         
         {/* 404 Handler */}
-        <Route path="*" element={<div className="p-10 text-center">404 - Page Not Found</div>} />
+        <Route path="*" element={<div className="p-10 text-center text-gray-500 font-bold">404 - Page Not Found</div>} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { 
-  FaSearch, FaBoxOpen, FaClock, FaExclamationTriangle, 
+  FaSearch, FaBoxOpen, FaExclamationTriangle, 
   FaTrashAlt, FaTimes, FaMapMarkerAlt, FaBook, FaCheckCircle
 } from "react-icons/fa";
 import api from "../api/axios";
@@ -8,6 +9,7 @@ import { useAuth } from "../api/auth";
 
 function ViewCenterAllocation() {
   const { user: currentUser } = useAuth();
+  const { uuid } = useParams(); // Retrieves UUID from URL (e.g., /:uuid/view-center-allocation-book)
   
   // Data States
   const [allocations, setAllocations] = useState([]);
@@ -22,19 +24,20 @@ function ViewCenterAllocation() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedAlloc, setSelectedAlloc] = useState(null);
 
-  // Statuses from your JSON are lowercase ("pending"), adjusted options to match
-  const statusOptions = ["pending", "allocated", "dispatched", "received"];
+  // Matches Django Model STATUS_CHOICES
+  const statusOptions = ["pending", "approved", "rejected"];
 
   useEffect(() => {
-    // Assuming you are passing center_id 1 based on your URL example
-    fetchInitialData(1); 
-  }, []);
+    if (uuid) {
+      fetchInitialData(uuid); 
+    }
+  }, [uuid]);
 
-  const fetchInitialData = async (centerId) => {
+  const fetchInitialData = async (centerUuid) => {
     setLoading(true);
     try {
-      // Endpoint: http://127.0.0.1:8000/api/view-center-allocation/1/
-      const res = await api.get(`/view-center-allocation/${centerId}/`, {
+      // Endpoint: http://127.0.0.1:8000/api/view-center-allocation/<uuid>/
+      const res = await api.get(`/view-center-allocation/${centerUuid}/`, {
         headers: { Authorization: `Bearer ${currentUser?.access}` }
       });
       
@@ -50,34 +53,51 @@ function ViewCenterAllocation() {
 
   const handleUpdateStatus = async (newStatus) => {
     try {
-      // Update endpoint remains similar, check your backend for the exact route
-      await api.put(`/book-allocation/update/${selectedAlloc.id}/`, 
-        { status: newStatus },
+      // Automatically set 'approved' boolean based on status string
+      const isApproved = newStatus.toLowerCase() === "approved";
+
+      // Endpoint: http://127.0.0.1:8000/api/center-book/update/<id>/
+      await api.put(`/center-book/update/${selectedAlloc.id}/`, 
+        { 
+          status: newStatus,
+          approved: isApproved 
+        },
         { headers: { Authorization: `Bearer ${currentUser?.access}` }}
       );
+
+      // Refresh local UI state
       setAllocations(prev => prev.map(item => 
-        item.id === selectedAlloc.id ? { ...item, status: newStatus } : item
+        item.id === selectedAlloc.id 
+          ? { ...item, status: newStatus, approved: isApproved } 
+          : item
       ));
       setShowStatusModal(false);
-    } catch (err) { alert("Status update failed."); }
+    } catch (err) { 
+      alert("Status update failed."); 
+    }
   };
 
   const handleDelete = async () => {
     try {
-      await api.delete(`/book-allocation/delete/${selectedAlloc.id}/`, {
+      // Endpoint: http://127.0.0.1:8000/api/center-book/delete/<id>/
+      await api.delete(`/center-book/delete/${selectedAlloc.id}/`, {
         headers: { Authorization: `Bearer ${currentUser?.access}` }
       });
+
+      // Remove from UI state
       setAllocations(prev => prev.filter(item => item.id !== selectedAlloc.id));
       setShowDeleteModal(false);
-    } catch (err) { alert("Delete failed."); }
+      setSelectedAlloc(null);
+    } catch (err) { 
+      alert("Delete failed."); 
+    }
   };
 
   const getStatusStyle = (status) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'pending': return 'bg-amber-50 text-amber-600 border-amber-100';
-      case 'allocated': return 'bg-blue-50 text-blue-600 border-blue-100';
-      case 'dispatched': return 'bg-indigo-50 text-indigo-600 border-indigo-100';
-      case 'received': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+      case 'approved': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+      case 'rejected': return 'bg-rose-50 text-rose-600 border-rose-100';
       default: return 'bg-slate-50 text-slate-600 border-slate-100';
     }
   };
@@ -101,9 +121,12 @@ function ViewCenterAllocation() {
             <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
               <FaBoxOpen className="text-indigo-600" /> Center Allocation
             </h1>
-            <p className="text-slate-500 mt-1 font-medium italic">Tracking book inventory across regional centers</p>
+            <p className="text-slate-500 mt-1 font-medium italic">Tracking book inventory for Center UUID: {uuid}</p>
           </div>
-          <button onClick={() => fetchInitialData(1)} className="px-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition shadow-sm active:scale-95">
+          <button 
+            onClick={() => fetchInitialData(uuid)} 
+            className="px-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition shadow-sm active:scale-95"
+          >
             Refresh Data
           </button>
         </div>
@@ -120,16 +143,14 @@ function ViewCenterAllocation() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="relative">
-            <select 
-              className="w-full appearance-none bg-white border border-slate-200 rounded-2xl py-4 px-6 font-bold text-slate-700 outline-none cursor-pointer shadow-sm"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="ALL">All Statuses</option>
-              {statusOptions.map(opt => <option key={opt} value={opt.toUpperCase()}>{opt.toUpperCase()}</option>)}
-            </select>
-          </div>
+          <select 
+            className="w-full bg-white border border-slate-200 rounded-2xl py-4 px-6 font-bold text-slate-700 outline-none cursor-pointer shadow-sm"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="ALL">All Statuses</option>
+            {statusOptions.map(opt => <option key={opt} value={opt.toUpperCase()}>{opt.toUpperCase()}</option>)}
+          </select>
         </div>
 
         {/* Table Content */}
@@ -140,14 +161,13 @@ function ViewCenterAllocation() {
                 <tr className="bg-slate-50/50">
                   <th className="py-6 px-8 text-[11px] font-black text-slate-400 uppercase tracking-widest">Center & ID</th>
                   <th className="py-6 px-8 text-[11px] font-black text-slate-400 uppercase tracking-widest">Book & Quantity</th>
-                  <th className="py-6 px-8 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Date & Time</th>
                   <th className="py-6 px-8 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
                   <th className="py-6 px-8 text-[11px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {loading ? (
-                  <tr><td colSpan="5" className="py-24 text-center text-slate-400 font-bold animate-pulse">Fetching Center Data...</td></tr>
+                  <tr><td colSpan="4" className="py-24 text-center text-slate-400 font-bold animate-pulse">Fetching Center Data...</td></tr>
                 ) : filteredData.map((alloc) => (
                   <tr key={alloc.id} className="hover:bg-slate-50/80 transition-all group">
                     <td className="py-6 px-8">
@@ -157,23 +177,17 @@ function ViewCenterAllocation() {
                         </div>
                         <div>
                           <p className="font-bold text-slate-800 text-xs uppercase">{alloc.center}</p>
-                          <p className="text-[10px] text-slate-400 font-bold font-mono">ALLOC-ID: #{alloc.id}</p>
+                          <p className="text-[10px] text-slate-400 font-bold font-mono">ID: #{alloc.id}</p>
                         </div>
                       </div>
                     </td>
                     <td className="py-6 px-8">
                       <div className="flex flex-col gap-1">
                         <p className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                          <FaBook className="text-indigo-400" size={14}/> {alloc.book}
+                          {alloc.book} {alloc.approved && <FaCheckCircle className="text-emerald-500" />}
                         </p>
-                        <span className="inline-flex items-center w-fit bg-indigo-50 text-indigo-600 text-[10px] font-black px-2 py-0.5 rounded-md uppercase">
-                          Qty: {alloc.allocation_quantity}
-                        </span>
+                        <span className="text-[10px] font-black text-indigo-600 uppercase">Qty: {alloc.allocation_quantity}</span>
                       </div>
-                    </td>
-                    <td className="py-6 px-8 text-center">
-                      <p className="text-[11px] font-bold text-slate-600">{alloc.date}</p>
-                      <p className="text-[10px] text-slate-400 font-medium">{alloc.time}</p>
                     </td>
                     <td className="py-6 px-8 text-center">
                       <button 
@@ -199,14 +213,49 @@ function ViewCenterAllocation() {
           {!loading && filteredData.length === 0 && (
             <div className="py-24 text-center">
               <FaExclamationTriangle className="mx-auto text-slate-200 mb-4" size={48} />
-              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No records found for this center</p>
+              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No records found</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* MODALS (Status and Delete logic remains the same) */}
-      {/* ... (Keep your existing modal code) ... */}
+      {/* Status Modal */}
+      {showStatusModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl">
+            <h3 className="text-xl font-black text-slate-900 mb-6">Update Status</h3>
+            <div className="flex flex-col gap-3">
+              {statusOptions.map(option => (
+                <button
+                  key={option}
+                  onClick={() => handleUpdateStatus(option)}
+                  className="w-full py-4 rounded-2xl font-bold uppercase text-sm border-2 border-slate-100 hover:border-indigo-600 hover:bg-indigo-50 transition-all"
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setShowStatusModal(false)} className="w-full mt-6 text-slate-400 font-bold text-sm">Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center">
+            <div className="w-20 h-20 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FaTrashAlt size={32} />
+            </div>
+            <h3 className="text-xl font-black text-slate-900 mb-2">Delete Record?</h3>
+            <p className="text-slate-500 text-sm mb-8">This will permanently remove allocation #{selectedAlloc?.id} from the database.</p>
+            <div className="flex gap-4">
+              <button onClick={() => setShowDeleteModal(false)} className="flex-1 py-4 rounded-2xl font-bold text-slate-400 bg-slate-50">Cancel</button>
+              <button onClick={handleDelete} className="flex-1 py-4 rounded-2xl font-bold text-white bg-rose-500 hover:bg-rose-600 shadow-lg shadow-rose-200 transition-all">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
