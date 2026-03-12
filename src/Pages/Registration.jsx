@@ -245,7 +245,7 @@ function Registration() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormInput icon={<Users size={18}/>} label="Full Name" name="student_name" value={formData.student_name} onChange={(e) => setFormData({...formData, student_name: e.target.value})} />
                 <FormInput icon={<CreditCard size={18}/>} label="NIC Number" name="nic" value={formData.nic} onChange={(e) => setFormData({...formData, nic: e.target.value})} />
-                <FormInput icon={<Hash size={18}/>} label="Serial No" name="s_no" value={formData.s_no} onChange={(e) => setFormData({...formData, s_no: e.target.value})} />
+                <FormInput icon={<Hash size={18}/>} label="Student No" name="s_no" value={formData.s_no} onChange={(e) => setFormData({...formData, s_no: e.target.value})} />
                 <FormInput icon={<Hash size={18}/>} label="Reg No" name="reg_no" value={formData.reg_no} onChange={(e) => setFormData({...formData, reg_no: e.target.value})} />
               </div>
               

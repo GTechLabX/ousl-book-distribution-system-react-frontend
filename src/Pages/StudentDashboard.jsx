@@ -54,7 +54,7 @@ const StudentDashboard = () => {
         
         {/* Profile Card & Info */}
         <div className="space-y-6">
-          <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+          {/* <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
             <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
               <MapPin className="text-indigo-600" size={20} /> My Center
             </h2>
@@ -68,7 +68,7 @@ const StudentDashboard = () => {
                 <p className="text-lg font-semibold text-slate-800">{user?.district || 'Colombo'}</p>
               </div>
             </div>
-          </div>
+          </div> */}
 
           <div className="bg-indigo-900 rounded-3xl p-8 shadow-lg text-white">
             <h3 className="text-lg font-bold mb-2">Need Help?</h3>
