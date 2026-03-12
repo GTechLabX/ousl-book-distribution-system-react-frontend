@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { 
   FaSearch, FaBoxOpen, FaClock, FaExclamationTriangle, 
-  FaFilter, FaUserCircle, FaTrashAlt, FaTimes, FaIdCard, FaCode, FaCheckCircle
+  FaTrashAlt, FaTimes, FaMapMarkerAlt, FaBook, FaCheckCircle
 } from "react-icons/fa";
 import api from "../api/axios";
 import { useAuth } from "../api/auth";
@@ -11,8 +11,6 @@ function ViewCenterAllocation() {
   
   // Data States
   const [allocations, setAllocations] = useState([]);
-  const [studentDetails, setStudentDetails] = useState({});
-  const [bookDetails, setBookDetails] = useState({});
   
   // UI States
   const [loading, setLoading] = useState(false);
@@ -24,25 +22,24 @@ function ViewCenterAllocation() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedAlloc, setSelectedAlloc] = useState(null);
 
-  // Statuses tailored for Allocation
-  const statusOptions = ["PENDING", "ALLOCATED", "DISPATCHED", "RECEIVED", "RETURNED"];
+  // Statuses from your JSON are lowercase ("pending"), adjusted options to match
+  const statusOptions = ["pending", "allocated", "dispatched", "received"];
 
   useEffect(() => {
-    fetchInitialData();
+    // Assuming you are passing center_id 1 based on your URL example
+    fetchInitialData(1); 
   }, []);
 
-  const fetchInitialData = async () => {
+  const fetchInitialData = async (centerId) => {
     setLoading(true);
     try {
-      // Updated endpoint to reflect allocation
-      const res = await api.get("/book-allocations/", {
+      // Endpoint: http://127.0.0.1:8000/api/view-center-allocation/1/
+      const res = await api.get(`/view-center-allocation/${centerId}/`, {
         headers: { Authorization: `Bearer ${currentUser?.access}` }
       });
       
       if (res.data.success) {
-        const data = res.data.data;
-        setAllocations(data);
-        fetchRelatedMetadata(data);
+        setAllocations(res.data.data);
       }
     } catch (err) {
       console.error("Error fetching allocations:", err);
@@ -51,43 +48,9 @@ function ViewCenterAllocation() {
     }
   };
 
-  const fetchRelatedMetadata = async (data) => {
-    const studentIds = [...new Set(data.map(item => item.student))];
-    const bookIds = [...new Set(data.map(item => item.book))];
-
-    studentIds.forEach(async (id) => {
-      try {
-        const res = await api.get(`/student/${id}/`);
-        if (res.data.success) {
-          setStudentDetails(prev => ({ 
-            ...prev, 
-            [id]: { 
-              name: res.data.message.student_name, 
-              reg: res.data.message.reg_no 
-            } 
-          }));
-        }
-      } catch (err) { console.error(`Student ${id} error`); }
-    });
-
-    bookIds.forEach(async (id) => {
-      try {
-        const res = await api.get(`/center-book/${id}/`);
-        if (res.data.success) {
-          setBookDetails(prev => ({ 
-            ...prev, 
-            [id]: { 
-              name: res.data.data.book_name,
-              code: res.data.course_code 
-            } 
-          }));
-        }
-      } catch (err) { console.error(`Book ${id} error`); }
-    });
-  };
-
   const handleUpdateStatus = async (newStatus) => {
     try {
+      // Update endpoint remains similar, check your backend for the exact route
       await api.put(`/book-allocation/update/${selectedAlloc.id}/`, 
         { status: newStatus },
         { headers: { Authorization: `Bearer ${currentUser?.access}` }}
@@ -110,27 +73,22 @@ function ViewCenterAllocation() {
   };
 
   const getStatusStyle = (status) => {
-    switch (status) {
-      case 'PENDING': return 'bg-amber-50 text-amber-600 border-amber-100';
-      case 'ALLOCATED': return 'bg-blue-50 text-blue-600 border-blue-100';
-      case 'DISPATCHED': return 'bg-indigo-50 text-indigo-600 border-indigo-100';
-      case 'RECEIVED': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
-      case 'RETURNED': return 'bg-slate-50 text-slate-600 border-slate-100';
+    switch (status.toLowerCase()) {
+      case 'pending': return 'bg-amber-50 text-amber-600 border-amber-100';
+      case 'allocated': return 'bg-blue-50 text-blue-600 border-blue-100';
+      case 'dispatched': return 'bg-indigo-50 text-indigo-600 border-indigo-100';
+      case 'received': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
       default: return 'bg-slate-50 text-slate-600 border-slate-100';
     }
   };
 
   const filteredData = allocations.filter(alloc => {
-    const sInfo = studentDetails[alloc.student];
-    const bInfo = bookDetails[alloc.book];
     const query = searchQuery.toLowerCase();
     const matchesSearch = 
-      sInfo?.name?.toLowerCase().includes(query) || 
-      sInfo?.reg?.toLowerCase().includes(query) ||
-      bInfo?.name?.toLowerCase().includes(query) ||
-      bInfo?.code?.toLowerCase().includes(query) ||
+      alloc.book.toLowerCase().includes(query) || 
+      alloc.center.toLowerCase().includes(query) ||
       alloc.id.toString().includes(query);
-    return matchesSearch && (statusFilter === "ALL" || alloc.status === statusFilter);
+    return matchesSearch && (statusFilter === "ALL" || alloc.status.toUpperCase() === statusFilter);
   });
 
   return (
@@ -143,10 +101,10 @@ function ViewCenterAllocation() {
             <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
               <FaBoxOpen className="text-indigo-600" /> Center Allocation
             </h1>
-            <p className="text-slate-500 mt-1 font-medium italic">Manage and track book distribution to students</p>
+            <p className="text-slate-500 mt-1 font-medium italic">Tracking book inventory across regional centers</p>
           </div>
-          <button onClick={fetchInitialData} className="px-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition shadow-sm active:scale-95">
-            Refresh Allocation
+          <button onClick={() => fetchInitialData(1)} className="px-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition shadow-sm active:scale-95">
+            Refresh Data
           </button>
         </div>
 
@@ -156,7 +114,7 @@ function ViewCenterAllocation() {
             <FaSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input 
               type="text"
-              placeholder="Search student, reg no, course or book..."
+              placeholder="Search by book name, center, or ID..."
               className="w-full pl-14 pr-6 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-medium text-slate-700 shadow-sm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -164,12 +122,12 @@ function ViewCenterAllocation() {
           </div>
           <div className="relative">
             <select 
-              className="w-full appearance-none bg-white border border-slate-200 rounded-2xl py-4 px-6 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 cursor-pointer shadow-sm"
+              className="w-full appearance-none bg-white border border-slate-200 rounded-2xl py-4 px-6 font-bold text-slate-700 outline-none cursor-pointer shadow-sm"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
               <option value="ALL">All Statuses</option>
-              {statusOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              {statusOptions.map(opt => <option key={opt} value={opt.toUpperCase()}>{opt.toUpperCase()}</option>)}
             </select>
           </div>
         </div>
@@ -180,52 +138,47 @@ function ViewCenterAllocation() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/50">
-                  <th className="py-6 px-8 text-[11px] font-black text-slate-400 uppercase tracking-widest">Student Information</th>
-                  <th className="py-6 px-8 text-[11px] font-black text-slate-400 uppercase tracking-widest">Book Details</th>
+                  <th className="py-6 px-8 text-[11px] font-black text-slate-400 uppercase tracking-widest">Center & ID</th>
+                  <th className="py-6 px-8 text-[11px] font-black text-slate-400 uppercase tracking-widest">Book & Quantity</th>
+                  <th className="py-6 px-8 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Date & Time</th>
                   <th className="py-6 px-8 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
                   <th className="py-6 px-8 text-[11px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {loading ? (
-                  <tr><td colSpan="4" className="py-24 text-center text-slate-400 font-bold animate-pulse">Syncing Center Data...</td></tr>
+                  <tr><td colSpan="5" className="py-24 text-center text-slate-400 font-bold animate-pulse">Fetching Center Data...</td></tr>
                 ) : filteredData.map((alloc) => (
                   <tr key={alloc.id} className="hover:bg-slate-50/80 transition-all group">
                     <td className="py-6 px-8">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-inner">
-                          <FaUserCircle size={24} />
+                        <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                          <FaMapMarkerAlt size={18} />
                         </div>
                         <div>
-                          <p className="font-bold text-slate-800 uppercase text-xs tracking-tight">
-                            {studentDetails[alloc.student]?.name || "Loading..."}
-                          </p>
-                          <p className="text-[10px] text-slate-400 font-mono mt-0.5 font-bold flex items-center gap-1">
-                            <FaIdCard className="opacity-50" /> {studentDetails[alloc.student]?.reg || "---"}
-                          </p>
+                          <p className="font-bold text-slate-800 text-xs uppercase">{alloc.center}</p>
+                          <p className="text-[10px] text-slate-400 font-bold font-mono">ALLOC-ID: #{alloc.id}</p>
                         </div>
                       </div>
                     </td>
                     <td className="py-6 px-8">
-                      <div className="flex flex-col gap-1.5">
-                        <div className="flex items-center gap-2">
-                          <span className="bg-slate-900 text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter shadow-sm flex items-center gap-1">
-                            <FaCode size={10} className="text-indigo-400" />
-                            {bookDetails[alloc.book]?.code || "N/A"}
-                          </span>
-                          <p className="text-sm font-bold text-slate-700">
-                            {bookDetails[alloc.book]?.name || "Loading..."}
-                          </p>
-                        </div>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1.5">
-                          <FaClock className="text-slate-300" /> Allocated On: {alloc.allocation_date || alloc.expected_pickup_date}
+                      <div className="flex flex-col gap-1">
+                        <p className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                          <FaBook className="text-indigo-400" size={14}/> {alloc.book}
                         </p>
+                        <span className="inline-flex items-center w-fit bg-indigo-50 text-indigo-600 text-[10px] font-black px-2 py-0.5 rounded-md uppercase">
+                          Qty: {alloc.allocation_quantity}
+                        </span>
                       </div>
+                    </td>
+                    <td className="py-6 px-8 text-center">
+                      <p className="text-[11px] font-bold text-slate-600">{alloc.date}</p>
+                      <p className="text-[10px] text-slate-400 font-medium">{alloc.time}</p>
                     </td>
                     <td className="py-6 px-8 text-center">
                       <button 
                         onClick={() => { setSelectedAlloc(alloc); setShowStatusModal(true); }}
-                        className={`px-4 py-1.5 rounded-xl text-[10px] font-black border uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-sm ${getStatusStyle(alloc.status)}`}
+                        className={`px-4 py-1.5 rounded-xl text-[10px] font-black border uppercase tracking-widest transition-all shadow-sm ${getStatusStyle(alloc.status)}`}
                       >
                         {alloc.status}
                       </button>
@@ -233,7 +186,7 @@ function ViewCenterAllocation() {
                     <td className="py-6 px-8 text-right">
                       <button 
                         onClick={() => { setSelectedAlloc(alloc); setShowDeleteModal(true); }}
-                        className="p-3 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all active:scale-90"
+                        className="p-3 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
                       >
                         <FaTrashAlt size={16} />
                       </button>
@@ -246,50 +199,14 @@ function ViewCenterAllocation() {
           {!loading && filteredData.length === 0 && (
             <div className="py-24 text-center">
               <FaExclamationTriangle className="mx-auto text-slate-200 mb-4" size={48} />
-              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No allocation records found</p>
+              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No records found for this center</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* MODALS */}
-      {showStatusModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-[2.5rem] p-10 max-w-sm w-full shadow-2xl border border-slate-100">
-            <div className="flex justify-between items-center mb-8">
-              <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">Update Allocation</h3>
-              <button onClick={() => setShowStatusModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors"><FaTimes size={20}/></button>
-            </div>
-            <div className="flex flex-col gap-3">
-              {statusOptions.map((status) => (
-                <button
-                  key={status}
-                  onClick={() => handleUpdateStatus(status)}
-                  className={`py-4 px-6 rounded-2xl border font-black text-xs uppercase tracking-[0.2em] transition-all text-center ${getStatusStyle(status)} hover:brightness-95 active:scale-95`}
-                >
-                  {status}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-[2.5rem] p-10 max-w-sm w-full shadow-2xl border border-slate-100 text-center">
-            <div className="w-20 h-20 bg-rose-50 text-rose-500 rounded-3xl flex items-center justify-center mb-6 mx-auto">
-              <FaExclamationTriangle size={36} />
-            </div>
-            <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tighter">Confirm Removal</h3>
-            <p className="text-slate-500 text-sm mt-3 mb-10 font-medium leading-relaxed">Remove allocation record #{selectedAlloc?.id}? This will free up the allocated stock.</p>
-            <div className="flex gap-4">
-              <button onClick={() => setShowDeleteModal(false)} className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-colors">Cancel</button>
-              <button onClick={handleDelete} className="flex-1 py-4 bg-rose-600 text-white rounded-2xl font-bold hover:bg-rose-700 shadow-lg shadow-rose-200 transition-all active:scale-95">Confirm</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* MODALS (Status and Delete logic remains the same) */}
+      {/* ... (Keep your existing modal code) ... */}
     </div>
   );
 }

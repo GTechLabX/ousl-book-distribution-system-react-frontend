@@ -1,4 +1,4 @@
-import { Routes, Route, BrowserRouter } from 'react-router-dom';
+import { Routes, Route, BrowserRouter, Navigate } from 'react-router-dom';
 import Layout from './Components/Layout/Layout';
 import Dashboard from './Pages/Dashboard';
 import Distribution from './Pages/Distribution';
@@ -14,19 +14,22 @@ import ViewBookReservation from './Pages/ViewBookReservation';
 import Enrollment from './Pages/Enrollment';
 import ViewCenterAllocation from './Pages/ViewCenterAllocationBook';
 
-
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-
-        {/* Public Routes */}
+        {/* Public Routes - No UUID needed here */}
         <Route path="/login" element={<Login />} />
         <Route path="/password-reset" element={<PasswordReset />} />
 
-        {/* All routes inside Layout */}
-        <Route path="/" element={<Layout />} >
-          <Route index element={<Dashboard />} /> {/* default route "/" */}
+        {/* Protected Routes with Layout 
+          We change path="/" to path="/:uuid" 
+          This makes the URL look like: /d85a43.../distribution
+        */}
+        <Route path="/:uuid" element={<Layout />}>
+          {/* Index route for when user hits just /uuid/ */}
+          <Route index element={<Dashboard />} /> 
+          
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="scan-student" element={<ScanStudent />} />
           <Route path="distribution" element={<Distribution />} />
@@ -37,9 +40,14 @@ function App() {
           <Route path="book-reservation" element={<BookReservation />} />
           <Route path="view-book-reservation" element={<ViewBookReservation />} />
           <Route path="view-center-allocation-book" element={<ViewCenterAllocation />} />
-          <Route path="/enrollment/:id" element={<Enrollment />} />
+          <Route path="enrollment/:id" element={<Enrollment />} />
         </Route>
 
+        {/* Global Redirect: If someone hits "/" without a UUID, send to login */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        
+        {/* 404 Handler */}
+        <Route path="*" element={<div className="p-10 text-center">404 - Page Not Found</div>} />
       </Routes>
     </BrowserRouter>
   );

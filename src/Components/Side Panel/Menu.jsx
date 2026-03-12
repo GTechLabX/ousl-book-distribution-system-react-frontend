@@ -15,27 +15,22 @@ import {
 const Sidebar = () => {
   const { user } = useAuth();
   
-  // DEBUG: Uncomment the line below to see what role is actually being detected in your console
-  // console.log("Current User Role:", user?.role);
-
-  const userRole = user?.role?.toLowerCase(); // Convert to lowercase to prevent case-sensitivity issues
+  const userRole = user?.role?.toLowerCase();
+  const uuid = user?.uuid; // This must exist in your Auth context
 
   const menuItems = [
-    { name: "Dashboard", to: "/dashboard", icon: <FaTachometerAlt />, roles: ["superadmin", "admin", "staff", "student"] },
-    { name: "Scan Student", to: "/scan-student", icon: <FaQrcode />, roles: ["superadmin", "admin", "staff"] },
-    { name: "Distribution", to: "/distribution", icon: <FaBoxOpen />, roles: ["superadmin", "admin", "staff"] },
-    { name: "Inventory", to: "/inventory", icon: <FaWarehouse />, roles: ["superadmin", "admin", "staff"] },
-    { name: "Student Registration", to: "/registration", icon: <FaUserPlus />, roles: ["superadmin", "admin"] },
-    { name: "Course Management", to: "/course-management", icon: <FaBook />, roles: ["superadmin", "admin"] },
-    { name: "User Management", to: "/user-management", icon: <FaUsers />, roles: ["superadmin", "admin"] },
-    { name: "Make Reservation", to: "/book-reservation", icon: <FaCalendarCheck />, roles: ["student"] },
-  //    { name: "Make Reservation", to: "/book-reservation", icon: <FaCalendarCheck />, roles: ["superadmin", "admin", "staff", "student"] },
-    { name: "Center Allocation Book", to: "/view-center-allocation-book", icon: <FaListUl />, roles: ["superadmin", "admin", "staff"] },
-    { name: "View Reservations", to: "/view-book-reservation", icon: <FaListUl />, roles: ["superadmin", "admin", "staff"] },
+    { name: "Dashboard", to: `/${uuid}/dashboard`, icon: <FaTachometerAlt />, roles: ["superadmin", "admin", "staff", "student"] },
+    { name: "Scan Student", to: `/${uuid}/scan-student`, icon: <FaQrcode />, roles: ["superadmin", "admin", "staff"] },
+    { name: "Distribution", to: `/${uuid}/distribution`, icon: <FaBoxOpen />, roles: ["superadmin", "admin"] },
+    { name: "Inventory", to: `/${uuid}/inventory`, icon: <FaWarehouse />, roles: ["superadmin", "admin"] },
+    { name: "Student Registration", to: `/${uuid}/registration`, icon: <FaUserPlus />, roles: ["superadmin", "admin"] },
+    { name: "Course Management", to: `/${uuid}/course-management`, icon: <FaBook />, roles: ["superadmin", "admin"] },
+    { name: "User Management", to: `/${uuid}/user-management`, icon: <FaUsers />, roles: ["superadmin", "admin"] },
+    { name: "Make Reservation", to: `/${uuid}/book-reservation`, icon: <FaCalendarCheck />, roles: ["student"] },
+    { name: "Center Allocation Book", to: `/${uuid}/view-center-allocation-book`, icon: <FaListUl />, roles: ["superadmin", "admin", "staff"] },
+    { name: "View Reservations", to: `/${uuid}/view-book-reservation`, icon: <FaListUl />, roles: ["superadmin", "admin", "staff"] },
   ];
 
-  // If userRole is undefined, it won't show anything. 
-  // We filter items where the user's role exists in the allowed roles array.
   const filteredMenuItems = menuItems.filter(item => item.roles.includes(userRole));
 
   const linkClasses = ({ isActive }) =>
@@ -51,7 +46,7 @@ const Sidebar = () => {
   return (
     <aside className="flex flex-col w-64 min-h-screen bg-gradient-to-b from-[#0c4187] to-[#070055] shadow-xl">
       <nav className="flex flex-col gap-2 px-3 py-6">
-        {filteredMenuItems.length > 0 ? (
+        {uuid && filteredMenuItems.length > 0 ? (
           filteredMenuItems.map((item) => (
             <NavLink key={item.to} to={item.to} className={linkClasses}>
               <span className="text-lg">{item.icon}</span>
@@ -59,7 +54,9 @@ const Sidebar = () => {
             </NavLink>
           ))
         ) : (
-          <p className="text-white text-xs px-4">No access for role: {userRole || "unknown"}</p>
+          <p className="text-white text-xs px-4">
+            {!uuid ? "Loading Session..." : `No access for role: ${userRole}`}
+          </p>
         )}
       </nav>
 
