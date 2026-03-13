@@ -6,13 +6,13 @@ import {
   ArrowLeft, Search, Lock, BookOpen, 
   CheckCircle2, Hash, Calendar, Loader2,
   Filter, Trash2, GraduationCap, AlertCircle
-} from "lucide-react";
+} from "lucide-react"; 
 
 function Enrollment() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { id } = useParams(); // Student ID
+  const { uuid, id } = useParams(); // Added 'uuid' here to use in the back button
 
   const student = location.state;
 
@@ -93,7 +93,6 @@ function Enrollment() {
     setIsSubmitting(true);
     try {
       const config = { headers: { Authorization: `Bearer ${user?.access}` } };
-      // Corrected URL: student-course/delete/{id}/
       await api.delete(`/student-course/delete/${recordToDelete.id}/`, config);
       setSuccessMsg("Enrollment removed successfully");
       setShowDeleteModal(false);
@@ -144,14 +143,16 @@ function Enrollment() {
             </p>
           </div>
 
+          {/* UPDATED BACK BUTTON: Uses /${uuid}/registration */}
           <button 
-            onClick={() => navigate("/registration")}
+            onClick={() => navigate(`/${uuid}/registration`)}
             className="flex items-center justify-center gap-2 bg-white border-2 border-slate-200 text-slate-600 px-6 py-3 rounded-2xl font-bold shadow-sm hover:border-indigo-600 hover:text-indigo-600 transition-all active:scale-95"
           >
             <ArrowLeft size={18}/> Back to Registry
           </button>
         </div>
 
+        {/* Success message and the rest of the UI stays exactly the same */}
         {successMsg && (
           <div className="bg-emerald-50 text-emerald-600 p-4 rounded-xl mb-6 flex items-center gap-3 border border-emerald-100 animate-in fade-in slide-in-from-top-2">
             <CheckCircle2 size={20} /> {successMsg}

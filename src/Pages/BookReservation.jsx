@@ -25,9 +25,9 @@ function BookReservation() {
 
   // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // NEW
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); 
   const [selectedBook, setSelectedBook] = useState(null);
-  const [resToDelete, setResToDelete] = useState(null); // NEW: Track which reservation to delete
+  const [resToDelete, setResToDelete] = useState(null); // Track which reservation to delete
   
   const [reservationData, setReservationData] = useState({
     expected_pickup_date: "",
@@ -103,13 +103,13 @@ function BookReservation() {
     fetchInventory();
   }, [selectedCenterId]);
 
-  // NEW: Confirmation Modal Trigger
+  //  Confirmation Modal Trigger
   const confirmDelete = (reservation) => {
     setResToDelete(reservation);
     setIsDeleteModalOpen(true);
   };
 
-  // NEW: Final Delete Execution
+  // Final Delete Execution
   const handleFinalDelete = async () => {
     if (!resToDelete) return;
     setSubmitting(true);
@@ -311,7 +311,7 @@ function BookReservation() {
           </div>
         )}
 
-        {/* NEW: POPUP DELETE MODAL */}
+        {/* POPUP DELETE MODAL */}
         {isDeleteModalOpen && (
           <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
             <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">

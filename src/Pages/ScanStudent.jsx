@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaCheckCircle, FaQrcode, FaSearch, FaTimes, FaLock } from "react-icons/fa";
 import { Html5Qrcode } from "html5-qrcode";
+import Swal from "sweetalert2"; // Added for professional notifications and modals
 import api from "../api/axios";
 import { useAuth } from "../api/auth";
 
@@ -18,6 +19,15 @@ function ScanStudent() {
   // Refs
   const scannerRef = useRef(null);
   const isProcessing = useRef(false);
+
+  // Toast Configuration
+  const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+  });
 
   const getTodayDate = () => new Date().toISOString().split("T")[0];
   const getCurrentTime = () => new Date().toLocaleTimeString("en-GB", { hour12: false });
@@ -78,6 +88,7 @@ function ScanStudent() {
         setScanned(true);
         setSearchQuery(""); 
         await stopScanner();
+        Toast.fire({ icon: 'success', title: 'Student records loaded' });
       } else {
         throw new Error(res.data.error || "Student not found");
       }
@@ -114,16 +125,27 @@ function ScanStudent() {
     return () => { if (scannerRef.current) stopScanner(); };
   }, [showScanner]);
 
-  /**
-   * FIXED: This function now captures backend errors like 
-   * "Book ID 5 is not allocated to Kurunegala" and displays them in the UI.
-   */
   const handleIssueCourse = async (index) => {
     const course = student.courses[index];
-    if (!user?.uuid) return alert("Unauthorized: Admin ID missing.");
+    
+    // "ARE YOU SURE?" MODAL
+    const result = await Swal.fire({
+      title: 'Confirm Dispatch',
+      text: `Are you sure you want to issue ${course.name} (${course.code}) to this student?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#2563eb', // blue-600
+      cancelButtonColor: '#6b7280', // gray-500
+      confirmButtonText: 'Yes, Issue Material',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (!result.isConfirmed) return;
+
+    if (!user?.uuid) return Toast.fire({ icon: 'error', title: 'Admin ID missing' });
 
     setLoading(true);
-    setScanError(null); // Clear previous errors
+    setScanError(null);
 
     try {
       const payload = {
@@ -138,7 +160,6 @@ function ScanStudent() {
       });
 
       if (res.data.success) {
-        // Success Logic
         const updatedStudent = { ...student };
         updatedStudent.courses[index] = {
           ...course,
@@ -147,14 +168,20 @@ function ScanStudent() {
           issued_time: res.data.data?.time || getCurrentTime(),
         };
         setStudent(updatedStudent);
-        alert("Book issued successfully ✅");
+        
+        // SUCCESS NOTIFICATION
+        Swal.fire({
+          icon: 'success',
+          title: 'Issued!',
+          text: 'The material has been successfully dispatched.',
+          timer: 2000,
+          showConfirmButton: false
+        });
       } else {
-        // Catch business logic errors (e.g., Stock issues, Allocation issues)
         setScanError(res.data.error);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } catch (err) {
-      // Catch API Errors (400 Bad Request, 500 Server Error)
       const errorMessage = err.response?.data?.error || err.message;
       setScanError(errorMessage);
       window.scrollTo({ top: 0, behavior: 'smooth' });

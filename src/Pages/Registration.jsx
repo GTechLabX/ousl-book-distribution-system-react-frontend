@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "../api/axios";
 import { useAuth } from "../api/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom"; // Added useParams
 import { 
   Plus, Trash2, Edit3, Users, 
   Search, Loader2, X, MapPin, 
@@ -11,6 +11,7 @@ import {
 function Registration() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { uuid } = useParams(); // Extract the current uuid from the URL
 
   // Data States
   const [students, setStudents] = useState([]);
@@ -116,7 +117,6 @@ function Registration() {
     }
   };
 
-  // Open Fancy Delete Modal
   const confirmDelete = (student) => {
     setDeleteModal({ isOpen: true, studentId: student.id, studentName: student.student_name });
   };
@@ -161,7 +161,7 @@ function Registration() {
         </div>
 
         {successMsg && (
-          <div className="fixed top-8 left-1/2 -translate-x-1/2 z-100 bg-emerald-500 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-top-4 duration-300">
+          <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-top-4 duration-300">
             <CheckCircle2 size={20} /> <span className="font-bold">{successMsg}</span>
           </div>
         )}
@@ -206,9 +206,16 @@ function Registration() {
                     </td>
                     <td className="px-8 py-5 text-right">
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => navigate(`/enrollment/${s.id}`, { state: s })} className="p-2 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-all" title="Course Enrollment">
+                        
+                        {/* THE UPDATE: Added leading slash / and uuid variable */}
+                        <button 
+                          onClick={() => navigate(`/${uuid}/enrollment/${s.id}`)} 
+                          className="p-2 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-all" 
+                          title="Course Enrollment"
+                        >
                           <GraduationCap size={18}/>
                         </button>
+
                         <button onClick={() => openModal(s)} className="p-2 hover:bg-amber-50 hover:text-amber-600 rounded-lg transition-all"><Edit3 size={18}/></button>
                         <button onClick={() => confirmDelete(s)} className="p-2 hover:bg-rose-50 hover:text-rose-600 rounded-lg transition-all"><Trash2 size={18}/></button>
                       </div>
@@ -223,7 +230,7 @@ function Registration() {
 
       {/* POP-UP MODAL (Add/Edit) */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={closeModal} />
           <div className="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="bg-slate-900 p-8 text-white flex justify-between items-center">
@@ -238,7 +245,7 @@ function Registration() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormInput icon={<Users size={18}/>} label="Full Name" name="student_name" value={formData.student_name} onChange={(e) => setFormData({...formData, student_name: e.target.value})} />
                 <FormInput icon={<CreditCard size={18}/>} label="NIC Number" name="nic" value={formData.nic} onChange={(e) => setFormData({...formData, nic: e.target.value})} />
-                <FormInput icon={<Hash size={18}/>} label="Serial No" name="s_no" value={formData.s_no} onChange={(e) => setFormData({...formData, s_no: e.target.value})} />
+                <FormInput icon={<Hash size={18}/>} label="Student No" name="s_no" value={formData.s_no} onChange={(e) => setFormData({...formData, s_no: e.target.value})} />
                 <FormInput icon={<Hash size={18}/>} label="Reg No" name="reg_no" value={formData.reg_no} onChange={(e) => setFormData({...formData, reg_no: e.target.value})} />
               </div>
               
@@ -263,7 +270,7 @@ function Registration() {
 
       {/* EYE-CATCHING DELETE MODAL */}
       {deleteModal.isOpen && (
-        <div className="fixed inset-0 z-70 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300" />
           <div className="relative bg-white w-full max-w-md rounded-4xl shadow-2xl p-8 text-center animate-in zoom-in-95 duration-300">
             <div className="w-20 h-20 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-6">
