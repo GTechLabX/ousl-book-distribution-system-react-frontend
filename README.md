@@ -1,10 +1,12 @@
 
----
-
 # 📚 OUSL Book Distribution System – React Frontend
 
 A **React.js frontend** for the **Open University of Sri Lanka (OUSL)** Book Distribution System.
-It helps students request books and allows admins to manage inventory and distribution.
+It helps students request and reserve books before visiting the center, and allows admins and staff to manage inventory and distribution efficiently.
+
+This system is designed for **Superadmin, Staff, and Student roles**, leverages a **loosely coupled architecture**, and is ready for **microservice integration**. It also supports **QR code scanning** for fast book issuing and management.
+
+Whether you are a beginner or a professional, exploring this project will help you **enhance your knowledge and grow in your IT journey**.
 
 ---
 
@@ -21,8 +23,8 @@ It helps students request books and allows admins to manage inventory and distri
 
 ```bash
 # Clone the repo
-git clone https://github.com/<your-username>/OUSL-Book-Distribution-System-React--Frontend.git
-cd OUSL-Book-Distribution-System-React--Frontend
+git clone https://github.com/<your-username>/OUSL-Book-Distribution-System-React-Frontend.git
+cd OUSL-Book-Distribution-System-React-Frontend
 
 # Install dependencies
 npm install
@@ -34,27 +36,51 @@ VITE_API_URL=http://localhost:8000/api
 npm run dev
 ```
 
+> **Note:**
+> Make sure your Django backend is running and accessible at the URL you provide in `VITE_API_URL`.
+
 ---
 
-## 📁 Structure
+## 📁 Project Structure
 
 ```
 src/
- ├── components/
- ├── pages/
- ├── api/
- ├── routes/
- └── App.jsx
+ ├── components/      # Reusable UI components
+ ├── pages/           # All app pages (Dashboard, Login, Book Request, etc.)
+ ├── api/             # Axios API calls
+ ├── routes/          # Route definitions
+ └── App.jsx          # Main app entry
 ```
 
 ---
 
 ## ✨ Features
 
-* Student & Admin login
-* Book search, request, and tracking
-* Admin book management dashboard
-* Responsive UI
+* **User Roles:** Superadmin, Staff, Student
+
+* **Student Features:**
+
+  * Book search, request, and reservation before visiting the center
+  * Track request status: Pending, Approved, Ready for Collection
+
+
+* **Staff Features:**
+
+  * QR code scanning for books
+  * Book issuing and inventory updates
+  * View and manage student requests
+
+* **Superadmin Features:**
+
+  * Manage all users, books, and requests
+  * Access full dashboard analytics
+  * Approve or reject book requests
+
+* **General Features:**
+
+  * Loosely coupled system, microservice-ready architecture
+  * Responsive UI for desktops, tablets, and mobiles
+  * Notifications for book issues, approvals, and low stock
 
 ---
 
@@ -62,7 +88,7 @@ src/
 
 **Gangula Sandaru Dinusantha**
 
-Happy Coding......................... :)
----
+I hope anyone who explores this project **enhances their knowledge** and grows in their **IT industry journey** using this work.
 
+**Happy coding! 😊**
 
