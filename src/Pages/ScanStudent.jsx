@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaCheckCircle, FaQrcode, FaSearch, FaTimes, FaLock } from "react-icons/fa";
 import { Html5Qrcode } from "html5-qrcode";
-import Swal from "sweetalert2"; // Added for professional notifications and modals
+import Swal from "sweetalert2";
 import api from "../api/axios";
 import { useAuth } from "../api/auth";
 
